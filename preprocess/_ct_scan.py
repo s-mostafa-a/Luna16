@@ -72,11 +72,6 @@ def get_segmented_lungs(im, plot=False):
                 labels.append(label_image[coordinates[0], coordinates[1]])
     else:
         labels = [1, 2]
-    # to remove big detected tissues which their area is less than 1 percent of whole image
-    # to_remove_little_tissues = label_image > 0
-    # if np.sum(to_remove_little_tissues) / (
-    #         to_remove_little_tissues.shape[0] * to_remove_little_tissues.shape[1]) < 0.01:
-    #     label_image = np.zeros((label_image.shape[0], label_image.shape[1]))
     if plot:
         plots[plt_number].axis('off')
         plots[plt_number].set_title(f'{plt_number}')
@@ -242,8 +237,8 @@ class CTScan(object):
         Image.fromarray(image * 255).convert('L').save(filename)
 
 
-if __name__ == '__main__':
-    ct = CTScan(filename='1.3.6.1.4.1.14519.5.2.1.6279.6001.430109407146633213496148200410')
-    ct.transform()
-    plt.imshow(ct.image[20, :, :], cmap=plt.cm.gray)
-    plt.show()
+# if __name__ == '__main__':
+#     ct = CTScan(filename='1.3.6.1.4.1.14519.5.2.1.6279.6001.430109407146633213496148200410')
+#     ct.transform()
+#     plt.imshow(ct.image[20, :, :], cmap=plt.cm.gray)
+#     plt.show()
