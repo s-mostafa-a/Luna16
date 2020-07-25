@@ -158,26 +158,23 @@ class CTScan(object):
         self.coords = coords
         path = '/Users/mostafa/Desktop/dsb_analyse/input/subset0/' + self.filename + '.mhd'
         self.ds = sitk.ReadImage(path)
-        self.spacing = self.ds.GetSpacing()
-        self.origin = self.ds.GetOrigin()
+        self.spacing = np.array(list(reversed(self.ds.GetSpacing())))
+        self.origin = np.array(list(reversed(self.ds.GetOrigin())))
         self.image = sitk.GetArrayFromImage(self.ds)
 
     def reset_coords(self, coords):
         self.coords = coords
 
     def resample(self):
-        image = self.image
-        previous_spacing = self.spacing
+        spacing = np.array(self.spacing, dtype=np.float32)
         new_spacing = [1, 1, 1]
-        spacing = np.array(previous_spacing, dtype=np.float32)
-        resize_factor = spacing / new_spacing
-        new_real_shape = image.shape * resize_factor
-        new_shape = np.round(new_real_shape)
-        real_resize_factor = new_shape / image.shape
-        new_spacing = spacing / real_resize_factor
-        image = scipy.ndimage.interpolation.zoom(image, real_resize_factor, mode='nearest')
-        self.image = image
-        self.spacing = new_spacing
+        imgs = self.image
+        new_shape = np.round(imgs.shape * spacing / new_spacing)
+        true_spacing = spacing * imgs.shape / new_shape
+        resize_factor = new_shape / imgs.shape
+        imgs = scipy.ndimage.interpolation.zoom(imgs, resize_factor, mode='nearest')
+        self.image = imgs
+        self.spacing = true_spacing
 
     def segment_lung_from_ct_scan(self):
         self.image = np.asarray([get_segmented_lungs(slicee) for slicee in self.image])
@@ -192,8 +189,8 @@ class CTScan(object):
         return self.world_to_voxel(self.coords[idx])
 
     def world_to_voxel(self, worldCoord):
-        stretchedVoxelCoord = np.absolute(worldCoord - self.origin)
-        voxelCoord = stretchedVoxelCoord / self.spacing
+        stretchedVoxelCoord = np.absolute(np.array(worldCoord) - np.array(self.origin))
+        voxelCoord = stretchedVoxelCoord / np.array(self.spacing)
         return voxelCoord
 
     def get_ds(self):
@@ -206,10 +203,13 @@ class CTScan(object):
     def get_image(self):
         return self.image
 
-    def get_subimage(self, width):
-        x, y, z = self.get_voxel_coords()
-        subImage = self.image[z, y - width / 2:y + width / 2, x - width / 2:x + width / 2]
-        return subImage
+    def get_subimages(self, width):
+        sub_images = []
+        for i, (z, y, x) in enumerate(self.get_voxel_coords()):
+            print(f'''{int(z)} in {self.image.shape[0]}, {int(y - width / 2)}:{int(y + width / 2)} in {self.image.shape[1]}, {int(x - width / 2)}:{int(x + width / 2)} in {self.image.shape[2]}''')
+            subImage = self.image[int(z), int(y - width / 2):int(y + width / 2), int(x - width / 2):int(x + width / 2)]
+            sub_images.append(subImage)
+        return sub_images
 
     def normalizePlanes(self, npzarray):
         maxHU = 400.
