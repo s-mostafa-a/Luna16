@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.ndimage.interpolation import zoom
+import scipy
 
 
 def nms(output, nms_th):
@@ -81,3 +82,42 @@ def get_cube_from_img(img, center_z, center_y, center_x, block_size):
                                                                                   start_y_orig:end_y_orig,
                                                                                   start_x_orig:end_x_orig]
     return result
+
+
+# totally works fine
+def rotate_3d(img: np.array, rotate_id: int, height_width_length: list):
+    assert (rotate_id < 24)
+    axis = rotate_id // 8
+    which_rotation = rotate_id % 8
+    flip = which_rotation >= 4
+    rotation_degree = (which_rotation % 4) * 90
+    other_axes = [0, 1, 2]
+    other_axes.pop(axis)
+    hwl_exchanged = (which_rotation % 2) != 0
+    if hwl_exchanged:
+        tmp = height_width_length[other_axes[0]]
+        height_width_length[other_axes[0]] = height_width_length[other_axes[1]]
+        height_width_length[other_axes[1]] = tmp
+    img = scipy.ndimage.interpolation.rotate(img, angle=rotation_degree, axes=other_axes)
+    if flip:
+        img = np.flip(img, axis=axis)
+    return img, height_width_length
+
+
+# totally works fine
+def scale(img: np.array, scale_factor: float, height_width_length: list):
+    assert (.75 <= scale_factor <= 1.25)
+    spacing = np.array(height_width_length) * scale_factor
+    img1 = scipy.ndimage.interpolation.zoom(img, spacing, mode='nearest')
+    return img1, list(spacing)
+
+
+tst_img = np.ones((8, 8))
+tst_img[4, 4] = 0
+tst_img[7, 7] = 0
+print(tst_img)
+new_img, hwl = scale(img=tst_img, scale_factor=.75, height_width_length=[1., 1.])
+for row in new_img:
+    print(list(row))
+# print([list(row) for row in new_img])
+print(hwl)
