@@ -40,7 +40,7 @@ def iou(box0, box1):
 
 
 # works fine
-def get_cube_from_img_new(img, origin: tuple, block_size, pad_value=106):
+def get_cube_from_img_new(img, origin: tuple, block_size=128, pad_value=106):
     assert 2 <= len(origin) <= 3
     final_image_shape = tuple([block_size] * len(origin))
     result = np.ones(final_image_shape) * pad_value
@@ -49,7 +49,6 @@ def get_cube_from_img_new(img, origin: tuple, block_size, pad_value=106):
     start_at_result_images = []
     end_at_result_images = []
     for i, center_of_a_dim in enumerate(origin):
-        print(i, center_of_a_dim)
         start_at_original_image = int(center_of_a_dim - block_size / 2)
         end_at_original_image = start_at_original_image + block_size
         if start_at_original_image < 0:
@@ -67,18 +66,33 @@ def get_cube_from_img_new(img, origin: tuple, block_size, pad_value=106):
         start_at_result_images.append(start_at_result_image)
         end_at_result_images.append(end_at_result_image)
     if len(origin) == 3:
-        print(3)
         result[start_at_result_images[0]:end_at_result_images[0], start_at_result_images[1]:end_at_result_images[1],
         start_at_result_images[2]:end_at_result_images[2]] = img[start_at_original_images[0]:end_at_original_images[0],
                                                              start_at_original_images[1]:end_at_original_images[1],
                                                              start_at_original_images[2]:end_at_original_images[2]]
     elif len(origin) == 2:
-        print(2)
         result[start_at_result_images[0]:end_at_result_images[0],
         start_at_result_images[1]:end_at_result_images[1]] = img[start_at_original_images[0]:end_at_original_images[0],
                                                              start_at_original_images[1]:end_at_original_images[1]]
 
     return result
+
+
+def random_crop(img: np.array, origin: tuple, radius: float, spacing: tuple, block_size=128, pad_value=106):
+    max_radius_index = np.max(np.round(radius / np.array(spacing)).astype(int))
+    new_origin = list(origin)
+    shifts = []
+    for i in range(len(origin)):
+        high = int(block_size / 2) - max_radius_index
+        shift = np.random.randint(low=-abs(high), high=abs(high))
+        new_origin[i] += shift
+        shifts.append(shift)
+    print('origin:', tuple(new_origin))
+    print('shifts:', shifts)
+    print('block_size:', block_size)
+    out_img = get_cube_from_img_new(img, origin=tuple(new_origin), block_size=block_size, pad_value=pad_value)
+    out_origin = np.array([int(block_size / 2)] * len(origin), dtype=int) - np.array(shifts, dtype=int)
+    return out_img, tuple(out_origin)
 
 
 # works for final version
@@ -184,9 +198,23 @@ def scale(img: np.array, scale_factor: float, spacing: list, origin: tuple, r: f
 # print(np.flip(tst_img, 0))
 # print(tst_img)
 
+#
+# tst_img = np.ones((9, 9))
+# tst_img[1, 2] = 0
+#
+# new_img, sp, org = rotate(tst_img, [1., 1.], (1, 2), 2)
+# print(new_img[org[0], org[1]])
 
-tst_img = np.ones((9, 9))
-tst_img[1, 2] = 0
-
-new_img, sp, org = rotate(tst_img, [1., 1.], (1, 2), 2)
-print(new_img[org[0], org[1]])
+tst_img = np.ones((500, 500, 500), dtype=int)
+tst_img[100, 100, 100] = 0
+new_img, new_out = random_crop(img=tst_img, origin=(100, 100, 100), radius=2, spacing=(1., 1., 1.), block_size=100,
+                               pad_value=1)
+print(new_img[new_out])
+#
+# for i in [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5]:
+#     for j in [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5]:
+#         for k in [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5]:
+#             ls.append(new_img[new_out[0] + i, new_out[1] + j, new_out[2] + k])
+#             if new_img[new_out[0] + i, new_out[1] + j, new_out[2] + k] == 0.:
+#                 print('alooooo')
+# print(sum(ls)/len(ls))
