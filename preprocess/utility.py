@@ -1,3 +1,6 @@
+import math
+from functools import partial
+
 import numpy as np
 from scipy.ndimage.interpolation import zoom
 import scipy
@@ -35,7 +38,8 @@ def iou(box0, box1):
     union = box0[3] * box0[3] * box0[3] + box1[3] * box1[3] * box1[3] - intersection
     return intersection / union
 
-# works totally fine
+
+# works fine
 def get_cube_from_img_new(img, origin: tuple, block_size, pad_value=106):
     assert 2 <= len(origin) <= 3
     final_image_shape = tuple([block_size] * len(origin))
@@ -77,40 +81,112 @@ def get_cube_from_img_new(img, origin: tuple, block_size, pad_value=106):
     return result
 
 
-# works totally fine
-def rotate_3d(img: np.array, rotate_id: int, height_width_length: list):
-    assert (rotate_id < 24)
-    axis = rotate_id // 8
+# works for final version
+def _get_point_after_2d_rotation(in_point: tuple, shape: tuple, rot90s: int, flip: bool = False):
+    assert len(in_point) == 2 and len(shape) == 2
+    rot90s = rot90s % 4
+    result_point = list(in_point)
+    for i in range(rot90s):
+        previous = result_point.copy()
+        axes = [0, 1]
+        point_complement = (shape[0] - 1 - previous[0], shape[1] - 1 - previous[1])
+        result_point[axes[0]] = point_complement[axes[1]]
+        result_point[axes[1]] = previous[axes[0]]
+    if flip:
+        result_point[0] = shape[0] - 1 - result_point[0]
+    return result_point
+
+
+# works for final version
+def _get_point_after_3d_rotation(in_point: tuple, shape: tuple, axes, rot90s: int, flip: bool = False):
+    rot90s = rot90s % 4
+    result_point = list(in_point)
+    other_axis = [item for item in [0, 1, 2] if item not in axes]
+    for i in range(rot90s):
+        previous = result_point.copy()
+        point_complement = np.array(shape, dtype=int) - np.array(previous, dtype=int) - 1
+        result_point[axes[0]] = point_complement[axes[1]]
+        result_point[axes[1]] = previous[axes[0]]
+    if flip:
+        result_point[other_axis[0]] = shape[other_axis[0]] - 1 - result_point[other_axis[0]]
+    return result_point
+
+
+# works for final version
+def rotate(img: np.array, spacing: list, origin: tuple, rotate_id: int):
+    dimensions = len(img.shape)
+    assert (dimensions == 3 and rotate_id < 24) or (dimensions == 2 and rotate_id < 8)
+    other_axes = [i for i in range(dimensions)]
+
+    if dimensions == 2:
+        axis = [0]
+        out_origin = partial(_get_point_after_2d_rotation, in_point=origin, shape=tuple(img.shape))
+    else:  # dimensions == 3
+        axis = rotate_id // 8
+        other_axes.pop(axis)
+        out_origin = partial(_get_point_after_3d_rotation, in_point=origin, shape=tuple(img.shape), axes=other_axes)
+
     which_rotation = rotate_id % 8
     flip = which_rotation >= 4
-    rotation_degree = (which_rotation % 4) * 90
-    other_axes = [0, 1, 2]
-    other_axes.pop(axis)
-    hwl_exchanged = (which_rotation % 2) != 0
-    if hwl_exchanged:
-        tmp = height_width_length[other_axes[0]]
-        height_width_length[other_axes[0]] = height_width_length[other_axes[1]]
-        height_width_length[other_axes[1]] = tmp
-    img = scipy.ndimage.interpolation.rotate(img, angle=rotation_degree, axes=other_axes)
+    rotation_times = (which_rotation % 4)
+
+    spacing_exchanged = (which_rotation % 2) != 0
+    if spacing_exchanged:
+        if dimensions == 3:
+            tmp = spacing[other_axes[0]]
+            spacing[other_axes[0]] = spacing[other_axes[1]]
+            spacing[other_axes[1]] = tmp
+        elif dimensions == 2:
+            tmp = spacing[0]
+            spacing[0] = spacing[1]
+            spacing[1] = tmp
+    img = np.rot90(img, k=rotation_times, axes=other_axes)
     if flip:
         img = np.flip(img, axis=axis)
-    return img, height_width_length
+    return img, spacing, out_origin(rot90s=rotation_times, flip=flip)
 
 
-# totally works fine
-def scale(img: np.array, scale_factor: float, height_width_length: list):
+# works for final version
+def scale(img: np.array, scale_factor: float, spacing: list, origin: tuple, r: float):
     assert (.75 <= scale_factor <= 1.25)
-    spacing = np.array(height_width_length) * scale_factor
+    out_origin = tuple(np.floor(np.array(origin) * scale_factor).astype(int))
+    out_r = math.ceil(r * scale_factor)
+    spacing = np.array(spacing) * scale_factor
     img1 = scipy.ndimage.interpolation.zoom(img, spacing, mode='nearest')
-    return img1, list(spacing)
+    return img1, list(spacing), out_origin, out_r
 
 
-tst_img = np.ones((8, 8))
-tst_img[4, 4] = 0
-tst_img[7, 7] = 0
-print(tst_img)
-new_img, hwl = scale(img=tst_img, scale_factor=.75, height_width_length=[1., 1.])
-for row in new_img:
-    print(list(row))
-# print([list(row) for row in new_img])
-print(hwl)
+# tst_img = np.ones((8, 8))
+# tst_img[3, 3] = 0
+# tst_img[3, 7] = 0
+# print(tst_img)
+# new_img, sp, ouor, oura = scale(img=tst_img, scale_factor=.75, spacing=[1., 1.], origin=(3, 3), r=4.)
+# for row in new_img:
+#     print(list(row))
+# print('spacing', sp)
+# print('origin', ouor)
+# print('radius', oura)
+
+
+# tst_img = np.ones((7, 8))
+# tst_img[3, 3] = 0
+# tst_img[3, 7] = 0
+# print(tst_img[:, :].astype(int))
+# new_img, sp = rotate(tst_img, 1, [1., 2.], (3, 3))
+# for row in new_img[:, :].astype(int):
+#     print(list(row))
+# print(sp)
+# print(new_img.shape)
+
+# print(_get_point_after_2d_rotation((2, 1), (3, 3), 2, True))
+# tst_img = np.ones((3, 3))
+# tst_img[1, 2] = 0
+# print(np.flip(tst_img, 0))
+# print(tst_img)
+
+
+tst_img = np.ones((9, 9))
+tst_img[1, 2] = 0
+
+new_img, sp, org = rotate(tst_img, [1., 1.], (1, 2), 2)
+print(new_img[org[0], org[1]])
