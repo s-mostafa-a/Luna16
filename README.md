@@ -27,7 +27,7 @@ And data augmentations steps:
 
 * Scaling the 3d image with a scale factor between 0.75 and 1.25 (their scale factor is between 0.8 and 1.15, I changed it for simplicity)
 * Random Cropping the 3d image which contains nodule in it. All details are the same as their paper.
-* 90 degrees rotation, based on different axes and flipping (A cube can have 24 different types of rotate and flip actions). All details are the same as their paper.
+* 90 degrees rotation, based on different axes and flipping. All details are the same as their paper.
 
 This is a part of their paper which is related to data augmentation:
 
