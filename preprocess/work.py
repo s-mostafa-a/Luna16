@@ -3,14 +3,6 @@ import numpy as np
 from model.net import Net
 import torch
 
-# def crop(arr:np.array, size, origin:tuple):
-#     pass
-#
-#
-#
-#
-# np.ones((200, 200, 200))
-# crop()
 arr = np.ones((1, 1, 128, 128, 128), dtype=np.float32)
 coord = torch.rand((1, 3, 32, 32, 32), dtype=torch.float32)
 n = Net()

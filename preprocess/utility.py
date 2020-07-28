@@ -157,49 +157,6 @@ def get_augmented_cube(img: np.array, radius: float, origin: tuple, spacing: tup
     return img3, radius1, origin3, spacing2
 
 
-# tst_img = np.ones((8, 8))
-# tst_img[3, 3] = 0
-# tst_img[3, 7] = 0
-# print(tst_img)
-# new_img, sp, ouor, oura = scale(img=tst_img, scale_factor=.75, spacing=[1., 1.], origin=(3, 3), r=4.)
-# for row in new_img:
-#     print(list(row))
-# print('spacing', sp)
-# print('origin', ouor)
-# print('radius', oura)
-
-
-# tst_img = np.ones((7, 8))
-# tst_img[3, 3] = 0
-# tst_img[3, 7] = 0
-# print(tst_img[:, :].astype(int))
-# new_img, sp = rotate(tst_img, 1, [1., 2.], (3, 3))
-# for row in new_img[:, :].astype(int):
-#     print(list(row))
-# print(sp)
-# print(new_img.shape)
-
-# print(_get_point_after_2d_rotation((2, 1), (3, 3), 2, True))
-# tst_img = np.ones((3, 3))
-# tst_img[1, 2] = 0
-# print(np.flip(tst_img, 0))
-# print(tst_img)
-
-#
-# tst_img = np.ones((9, 9))
-# tst_img[1, 2] = 0
-#
-# new_img, sp, org = rotate(tst_img, [1., 1.], (1, 2), 2)
-# print(new_img[org[0], org[1]])
-
-
-# new_img, new_out = random_crop(img=tst_img, origin=(60, 60, 60), radius=2, spacing=(1., 1., 1.), block_size=100,
-#                                pad_value=1)
-# print(new_img[new_out])
-# new_img = get_cube_from_img_new(tst_img, origin=tuple((130, 130, 130)), block_size=100, pad_value=1)
-# print(new_img)
-
-
 def get_segmented_lungs(im, plot=False):
     '''
     This funtion segments the lungs from the given 2D slice.
@@ -339,18 +296,3 @@ def get_segmented_lungs(im, plot=False):
         plt_number += 1
 
     return im
-
-# tst_img = np.ones((280, 300, 270), dtype=float)
-# tst_img[250, 250, 250] = 0
-# im, r, o, s = get_augmented_cube(img=tst_img, radius=10, origin=(250, 250, 250), spacing=(1., 1., 1.), pad_value=1)
-#
-# print(im.shape)
-# print(r, o, s)
-# vals = []
-# indcs = []
-# for i in range(-10, 10):
-#     for j in range(-10, 10):
-#         for k in range(-10, 10):
-#             vals.append(im[o[0] + i, o[1] + j, o[2] + k])
-#             indcs.append((i, j, k))
-# print(min(vals), indcs[int(np.argmin(np.array(vals)))], im[o[0], o[1], o[2]])

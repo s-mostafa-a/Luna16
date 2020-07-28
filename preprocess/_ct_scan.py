@@ -63,9 +63,16 @@ class CTScan(object):
             list_of_images_dict.append({'img': img, 'radius': radius, 'origin': origin, 'spacing': spacing})
         return list_of_images_dict
 
-    def get_subimages(self, width):
+    def get_subimages(self):
         sub_images = []
+        shape = self.image.shape
         for i, (z, y, x) in enumerate(self.get_voxel_coords()):
+            width_candidates = []
+            width_candidates.append(abs(shape[1]-y))
+            width_candidates.append(y)
+            width_candidates.append(abs(shape[2]-x))
+            width_candidates.append(x)
+            width = int(np.min(np.array(width_candidates)))
             sub_image = self.image[int(z), int(y - width / 2):int(y + width / 2), int(x - width / 2):int(x + width / 2)]
             sub_images.append(sub_image)
         return sub_images
@@ -94,9 +101,3 @@ class CTScan(object):
         image = self.get_subimage(width)
         image = self.normalizePlanes(image)
         Image.fromarray(image * 255).convert('L').save(filename)
-
-# if __name__ == '__main__':
-#     ct = CTScan(filename='1.3.6.1.4.1.14519.5.2.1.6279.6001.430109407146633213496148200410')
-#     ct.transform()
-#     plt.imshow(ct.image[20, :, :], cmap=plt.cm.gray)
-#     plt.show()
