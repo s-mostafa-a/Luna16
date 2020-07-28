@@ -14,7 +14,7 @@ The image bellow shows how these steps can be done.
 * Remove the blobs connected to the border of the image. (image: 2)
 * Label the connected points of the image. (image: 3)
 * Keep the labels with 2 largest areas and segment two lungs. (image: 4)
-* Fill in the small holes inside the mask of lungs which we seperate right and left lung. r and l are symbolic and they can be actually left and right! (images: 5, 6)
+* Fill in the small holes inside the mask of lungs which we seperate right and left lung. (images: 5, 6)
 * Fill convex hull of each lung. (images: 7, 8)
 * Joint two separated right and left lungs. (image: 9)
 * Closure operation with a disk of radius 10. This operation is to keep nodules attached to the lung wall. (image: 10)
