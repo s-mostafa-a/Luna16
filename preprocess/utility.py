@@ -6,41 +6,7 @@ from scipy.ndimage.interpolation import zoom
 import scipy
 
 
-def nms(output, nms_th):
-    if len(output) == 0:
-        return output
-    output = output[np.argsort(-output[:, 0])]
-    bboxes = [output[0]]
-    for i in np.arange(1, len(output)):
-        bbox = output[i]
-        flag = 1
-        for j in range(len(bboxes)):
-            if iou(bbox[1:5], bboxes[j][1:5]) >= nms_th:
-                flag = -1
-                break
-        if flag == 1:
-            bboxes.append(bbox)
-    bboxes = np.asarray(bboxes, np.float32)
-    return bboxes
-
-
-def iou(box0, box1):
-    r0 = box0[3] / 2
-    s0 = box0[:3] - r0
-    e0 = box0[:3] + r0
-    r1 = box1[3] / 2
-    s1 = box1[:3] - r1
-    e1 = box1[:3] + r1
-    overlap = []
-    for i in range(len(s0)):
-        overlap.append(max(0, min(e0[i], e1[i]) - max(s0[i], s1[i])))
-    intersection = overlap[0] * overlap[1] * overlap[2]
-    union = box0[3] * box0[3] * box0[3] + box1[3] * box1[3] * box1[3] - intersection
-    return intersection / union
-
-
-# works for final version, double checked
-def get_cube_from_img_new(img, origin: tuple, block_size=128, pad_value=106):
+def _get_cube_from_img_new(img, origin: tuple, block_size=128, pad_value=106):
     assert 2 <= len(origin) <= 3
     final_image_shape = tuple([block_size] * len(origin))
     result = np.ones(final_image_shape) * pad_value
@@ -78,8 +44,8 @@ def get_cube_from_img_new(img, origin: tuple, block_size=128, pad_value=106):
     return result
 
 
-# works for final version
-def random_crop(img: np.array, origin: tuple, radius: float, spacing: tuple, block_size=128, pad_value=106, margin=10):
+def random_crop(img: np.array, origin: tuple, radius: float, spacing: tuple, block_size: int, pad_value: float,
+                margin: int):
     max_radius_index = np.max(np.round(radius / np.array(spacing)).astype(int))
     new_origin = list(origin)
     shifts = []
@@ -91,12 +57,11 @@ def random_crop(img: np.array, origin: tuple, radius: float, spacing: tuple, blo
         shift = np.random.randint(low=-abs(high), high=abs(high))
         new_origin[i] += shift
         shifts.append(shift)
-    out_img = get_cube_from_img_new(img, origin=tuple(new_origin), block_size=block_size, pad_value=pad_value)
+    out_img = _get_cube_from_img_new(img, origin=tuple(new_origin), block_size=block_size, pad_value=pad_value)
     out_origin = np.array([int(block_size / 2)] * len(origin), dtype=int) - np.array(shifts, dtype=int)
     return out_img, tuple(out_origin)
 
 
-# works for final version
 def _get_point_after_2d_rotation(in_point: tuple, shape: tuple, rot90s: int, flip: bool = False):
     assert len(in_point) == 2 and len(shape) == 2
     rot90s = rot90s % 4
@@ -112,7 +77,6 @@ def _get_point_after_2d_rotation(in_point: tuple, shape: tuple, rot90s: int, fli
     return result_point
 
 
-# works for final version
 def _get_point_after_3d_rotation(in_point: tuple, shape: tuple, axes, rot90s: int, flip: bool = False):
     rot90s = rot90s % 4
     result_point = list(in_point)
@@ -127,8 +91,8 @@ def _get_point_after_3d_rotation(in_point: tuple, shape: tuple, axes, rot90s: in
     return result_point
 
 
-# works for final version
-def rotate(img: np.array, spacing: list, origin: tuple, rotate_id: int):
+def rotate(img: np.array, spacing: tuple, origin: tuple, rotate_id: int):
+    spacing = list(spacing)
     dimensions = len(img.shape)
     assert (dimensions == 3 and rotate_id < 24) or (dimensions == 2 and rotate_id < 8)
     other_axes = [i for i in range(dimensions)]
@@ -158,17 +122,27 @@ def rotate(img: np.array, spacing: list, origin: tuple, rotate_id: int):
     img = np.rot90(img, k=rotation_times, axes=other_axes)
     if flip:
         img = np.flip(img, axis=axis)
-    return img, spacing, out_origin(rot90s=rotation_times, flip=flip)
+    return img, tuple(spacing), out_origin(rot90s=rotation_times, flip=flip)
 
 
-# works for final version
-def scale(img: np.array, scale_factor: float, spacing: list, origin: tuple, r: float):
+def scale(img: np.array, scale_factor: float, spacing: tuple, origin: tuple, r: float):
     assert (.75 <= scale_factor <= 1.25)
     out_origin = tuple(np.floor(np.array(origin) * scale_factor).astype(int))
-    out_r = math.ceil(r * scale_factor)
+    out_r = r * scale_factor
     spacing = np.array(spacing) * scale_factor
     img1 = scipy.ndimage.interpolation.zoom(img, spacing, mode='nearest')
-    return img1, list(spacing), out_origin, out_r
+    return img1, tuple(spacing), out_origin, out_r
+
+
+def get_augmented_cube(img: np.array, radius: float, origin: tuple, spacing: tuple, block_size=128, pad_value=106,
+                       margin=10):
+    scale_factor = np.random.random() / 2 + .75
+    rotate_id = np.random.randint(0, 24)
+    img1, spacing1, origin1, radius1 = scale(img, scale_factor=scale_factor, spacing=spacing, origin=origin, r=radius)
+    img2, origin2 = random_crop(img=img1, origin=origin1, radius=radius1, spacing=spacing1, block_size=block_size,
+                                pad_value=pad_value, margin=margin)
+    img3, spacing2, origin3 = rotate(img=img2, spacing=spacing1, origin=origin2, rotate_id=rotate_id)
+    return img3, radius1, origin3, spacing2
 
 
 # tst_img = np.ones((8, 8))
@@ -206,10 +180,18 @@ def scale(img: np.array, scale_factor: float, spacing: list, origin: tuple, r: f
 # new_img, sp, org = rotate(tst_img, [1., 1.], (1, 2), 2)
 # print(new_img[org[0], org[1]])
 
-tst_img = np.ones((120, 120, 120), dtype=int)
-tst_img[60, 60, 60] = 0
+
 # new_img, new_out = random_crop(img=tst_img, origin=(60, 60, 60), radius=2, spacing=(1., 1., 1.), block_size=100,
 #                                pad_value=1)
 # print(new_img[new_out])
 # new_img = get_cube_from_img_new(tst_img, origin=tuple((130, 130, 130)), block_size=100, pad_value=1)
 # print(new_img)
+
+
+tst_img = np.ones((500, 500, 500), dtype=float)
+tst_img[250, 250, 250] = 0
+im, r, o, s = get_augmented_cube(img=tst_img, radius=10, origin=(250, 250, 250), spacing=(1., 1., 1.), pad_value=1)
+
+print(im.shape)
+print(r, o, s)
+print(im[o[0], o[1], o[2]])
