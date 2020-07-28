@@ -44,7 +44,7 @@ class CTScan(object):
     def world_to_voxel(self, worldCoord):
         stretchedVoxelCoord = np.absolute(np.array(worldCoord) - np.array(self.origin))
         voxelCoord = stretchedVoxelCoord / np.array(self.spacing)
-        return voxelCoord
+        return voxelCoord.astype(int)
 
     def get_ds(self):
         return self.ds
@@ -56,12 +56,18 @@ class CTScan(object):
     def get_image(self):
         return self.image
 
+    def get_augmented_subimages_around_coords(self):
+        list_of_images_dict = []
+        for i, (z, y, x) in enumerate(self.get_voxel_coords()):
+            img, radius, origin, spacing = get_augmented_cube(self.image, 5, (z, y, x), tuple(self.spacing))
+            list_of_images_dict.append({'img': img, 'radius': radius, 'origin': origin, 'spacing': spacing})
+        return list_of_images_dict
+
     def get_subimages(self, width):
         sub_images = []
         for i, (z, y, x) in enumerate(self.get_voxel_coords()):
-            print(f'''{int(z)} in {self.image.shape[0]}, {int(y - width / 2)}:{int(y + width / 2)} in {self.image.shape[1]}, {int(x - width / 2)}:{int(x + width / 2)} in {self.image.shape[2]}''')
-            subImage = self.image[int(z), int(y - width / 2):int(y + width / 2), int(x - width / 2):int(x + width / 2)]
-            sub_images.append(subImage)
+            sub_image = self.image[int(z), int(y - width / 2):int(y + width / 2), int(x - width / 2):int(x + width / 2)]
+            sub_images.append(sub_image)
         return sub_images
 
     def normalizePlanes(self, npzarray):
@@ -88,7 +94,6 @@ class CTScan(object):
         image = self.get_subimage(width)
         image = self.normalizePlanes(image)
         Image.fromarray(image * 255).convert('L').save(filename)
-
 
 # if __name__ == '__main__':
 #     ct = CTScan(filename='1.3.6.1.4.1.14519.5.2.1.6279.6001.430109407146633213496148200410')
