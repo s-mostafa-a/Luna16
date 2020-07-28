@@ -43,7 +43,7 @@ class Loss(nn.Module):
                 self.regress_loss(ph, lh),
                 self.regress_loss(pw, lw),
                 self.regress_loss(pd, ld)]
-            regress_losses_data = [l.data[0] for l in regress_losses]
+            regress_losses_data = [loz.data[0] for loz in regress_losses]
             classify_loss = 0.5 * self.classify_loss(
                 pos_prob, pos_labels[:, 0]) + 0.5 * self.classify_loss(
                 neg_prob, neg_labels + 1)
