@@ -3,3 +3,4 @@ venv/
 */__pycache__/
 */.DS_Store
 /preprocess/tmp
+.DS_Store
