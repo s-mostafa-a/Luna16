@@ -39,7 +39,7 @@ def iou(box0, box1):
     return intersection / union
 
 
-# works fine
+# works for final version, double checked
 def get_cube_from_img_new(img, origin: tuple, block_size=128, pad_value=106):
     assert 2 <= len(origin) <= 3
     final_image_shape = tuple([block_size] * len(origin))
@@ -57,14 +57,18 @@ def get_cube_from_img_new(img, origin: tuple, block_size=128, pad_value=106):
         else:
             start_at_result_image = 0
         if end_at_original_image > img.shape[i]:
-            end_at_result_image = start_at_result_image + img.shape[i]
             end_at_original_image = img.shape[i]
+            end_at_result_image = start_at_result_image + (end_at_original_image - start_at_original_image)
         else:
             end_at_result_image = block_size
         start_at_original_images.append(start_at_original_image)
         end_at_original_images.append(end_at_original_image)
         start_at_result_images.append(start_at_result_image)
         end_at_result_images.append(end_at_result_image)
+    print('start_at_original_images', start_at_original_images)
+    print('start_at_result_images', start_at_result_images)
+    print('end_at_original_images', end_at_original_images)
+    print('end_at_result_images', end_at_result_images)
     if len(origin) == 3:
         result[start_at_result_images[0]:end_at_result_images[0], start_at_result_images[1]:end_at_result_images[1],
         start_at_result_images[2]:end_at_result_images[2]] = img[start_at_original_images[0]:end_at_original_images[0],
@@ -77,19 +81,23 @@ def get_cube_from_img_new(img, origin: tuple, block_size=128, pad_value=106):
 
     return result
 
-
-def random_crop(img: np.array, origin: tuple, radius: float, spacing: tuple, block_size=128, pad_value=106):
+# works for final version
+def random_crop(img: np.array, origin: tuple, radius: float, spacing: tuple, block_size=128, pad_value=106, margin=10):
     max_radius_index = np.max(np.round(radius / np.array(spacing)).astype(int))
     new_origin = list(origin)
     shifts = []
     for i in range(len(origin)):
-        high = int(block_size / 2) - max_radius_index
+        high = int(block_size / 2) - max_radius_index - margin
+        if high < 0:
+            print('negative high')
+            high = 0
         shift = np.random.randint(low=-abs(high), high=abs(high))
         new_origin[i] += shift
         shifts.append(shift)
     print('origin:', tuple(new_origin))
     print('shifts:', shifts)
     print('block_size:', block_size)
+    print('aaaaa', f'{tuple(new_origin)} from {img.shape}', block_size, pad_value)
     out_img = get_cube_from_img_new(img, origin=tuple(new_origin), block_size=block_size, pad_value=pad_value)
     out_origin = np.array([int(block_size / 2)] * len(origin), dtype=int) - np.array(shifts, dtype=int)
     return out_img, tuple(out_origin)
@@ -205,16 +213,10 @@ def scale(img: np.array, scale_factor: float, spacing: list, origin: tuple, r: f
 # new_img, sp, org = rotate(tst_img, [1., 1.], (1, 2), 2)
 # print(new_img[org[0], org[1]])
 
-tst_img = np.ones((500, 500, 500), dtype=int)
-tst_img[100, 100, 100] = 0
-new_img, new_out = random_crop(img=tst_img, origin=(100, 100, 100), radius=2, spacing=(1., 1., 1.), block_size=100,
-                               pad_value=1)
-print(new_img[new_out])
-#
-# for i in [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5]:
-#     for j in [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5]:
-#         for k in [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5]:
-#             ls.append(new_img[new_out[0] + i, new_out[1] + j, new_out[2] + k])
-#             if new_img[new_out[0] + i, new_out[1] + j, new_out[2] + k] == 0.:
-#                 print('alooooo')
-# print(sum(ls)/len(ls))
+tst_img = np.ones((120, 120, 120), dtype=int)
+tst_img[60, 60, 60] = 0
+# new_img, new_out = random_crop(img=tst_img, origin=(60, 60, 60), radius=2, spacing=(1., 1., 1.), block_size=100,
+#                                pad_value=1)
+# print(new_img[new_out])
+# new_img = get_cube_from_img_new(tst_img, origin=tuple((130, 130, 130)), block_size=100, pad_value=1)
+# print(new_img)
