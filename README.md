@@ -8,17 +8,18 @@ If you have any questions on the code, please send an [email to me](mailto:s.mos
 # Till now
 Preprocess steps:
 
-* Convert the original 3d image into a binary image.
-* Remove the blobs connected to the border of the image.
-* Label the connected points of the image.
-* Keep the labels with 2 largest areas and segment two lungs.
-* Fill in the small holes inside the mask of lungs which we seperate right and left lung. r and l are symbolic and they can be actually left and right!
-* Fill convex hull of each lung.
-* Joint two separated right and left lungs.
-* Closure operation with a disk of radius 10. This operation is to keep nodules attached to the lung wall.
-* Superimpose the binary mask on the input image.
+The image bellow shows how these steps can be done.
 
-The image bellow shows how these steps can be done:
+* Convert the original 3d image into a binary image. (image: 1)
+* Remove the blobs connected to the border of the image. (image: 2)
+* Label the connected points of the image. (image: 3)
+* Keep the labels with 2 largest areas and segment two lungs. (image: 4)
+* Fill in the small holes inside the mask of lungs which we seperate right and left lung. r and l are symbolic and they can be actually left and right! (images: 5, 6)
+* Fill convex hull of each lung. (images: 7, 8)
+* Joint two separated right and left lungs. (image: 9)
+* Closure operation with a disk of radius 10. This operation is to keep nodules attached to the lung wall. (image: 10)
+* Superimpose the binary mask on the input image. (image: 11)
+
 
 ![preprocess](./preprocess.png)
 
