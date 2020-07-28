@@ -1,4 +1,3 @@
-import math
 from functools import partial
 
 import numpy as np
@@ -188,10 +187,17 @@ def get_augmented_cube(img: np.array, radius: float, origin: tuple, spacing: tup
 # print(new_img)
 
 
-tst_img = np.ones((500, 500, 500), dtype=float)
+tst_img = np.ones((280, 300, 270), dtype=float)
 tst_img[250, 250, 250] = 0
 im, r, o, s = get_augmented_cube(img=tst_img, radius=10, origin=(250, 250, 250), spacing=(1., 1., 1.), pad_value=1)
 
 print(im.shape)
 print(r, o, s)
-print(im[o[0], o[1], o[2]])
+vals = []
+indcs = []
+for i in range(-10, 10):
+    for j in range(-10, 10):
+        for k in range(-10, 10):
+            vals.append(im[o[0] + i, o[1] + j, o[2] + k])
+            indcs.append((i, j, k))
+print(min(vals), indcs[int(np.argmin(np.array(vals)))], im[o[0], o[1], o[2]])
