@@ -65,21 +65,18 @@ def get_cube_from_img_new(img, origin: tuple, block_size=128, pad_value=106):
         end_at_original_images.append(end_at_original_image)
         start_at_result_images.append(start_at_result_image)
         end_at_result_images.append(end_at_result_image)
-    print('start_at_original_images', start_at_original_images)
-    print('start_at_result_images', start_at_result_images)
-    print('end_at_original_images', end_at_original_images)
-    print('end_at_result_images', end_at_result_images)
+    # for simplicity
+    sri = start_at_result_images
+    eri = end_at_result_images
+    soi = start_at_original_images
+    eoi = end_at_original_images
     if len(origin) == 3:
-        result[start_at_result_images[0]:end_at_result_images[0], start_at_result_images[1]:end_at_result_images[1],
-        start_at_result_images[2]:end_at_result_images[2]] = img[start_at_original_images[0]:end_at_original_images[0],
-                                                             start_at_original_images[1]:end_at_original_images[1],
-                                                             start_at_original_images[2]:end_at_original_images[2]]
+        result[sri[0]:eri[0], sri[1]:eri[1], sri[2]:eri[2]] = img[soi[0]:eoi[0], soi[1]:eoi[1], soi[2]:eoi[2]]
     elif len(origin) == 2:
-        result[start_at_result_images[0]:end_at_result_images[0],
-        start_at_result_images[1]:end_at_result_images[1]] = img[start_at_original_images[0]:end_at_original_images[0],
-                                                             start_at_original_images[1]:end_at_original_images[1]]
+        result[sri[0]:eri[0], sri[1]:eri[1]] = img[soi[0]:eoi[0], soi[1]:eoi[1]]
 
     return result
+
 
 # works for final version
 def random_crop(img: np.array, origin: tuple, radius: float, spacing: tuple, block_size=128, pad_value=106, margin=10):
@@ -89,15 +86,11 @@ def random_crop(img: np.array, origin: tuple, radius: float, spacing: tuple, blo
     for i in range(len(origin)):
         high = int(block_size / 2) - max_radius_index - margin
         if high < 0:
-            print('negative high')
+            print('negative high!!!')
             high = 0
         shift = np.random.randint(low=-abs(high), high=abs(high))
         new_origin[i] += shift
         shifts.append(shift)
-    print('origin:', tuple(new_origin))
-    print('shifts:', shifts)
-    print('block_size:', block_size)
-    print('aaaaa', f'{tuple(new_origin)} from {img.shape}', block_size, pad_value)
     out_img = get_cube_from_img_new(img, origin=tuple(new_origin), block_size=block_size, pad_value=pad_value)
     out_origin = np.array([int(block_size / 2)] * len(origin), dtype=int) - np.array(shifts, dtype=int)
     return out_img, tuple(out_origin)
