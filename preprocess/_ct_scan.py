@@ -6,7 +6,7 @@ from preprocess.utility import get_segmented_lungs, get_augmented_cube
 
 
 class CTScan(object):
-    def __init__(self, filename=None, coords=None):
+    def __init__(self, filename, coords, radii):
         self.filename = filename
         self.coords = coords
         path = '/Users/mostafa/Desktop/dsb_analyse/input/subset0/' + self.filename + '.mhd'
@@ -14,6 +14,7 @@ class CTScan(object):
         self.spacing = np.array(list(reversed(self.ds.GetSpacing())))
         self.origin = np.array(list(reversed(self.ds.GetOrigin())))
         self.image = sitk.GetArrayFromImage(self.ds)
+        self.radii = radii
 
     def reset_coords(self, coords):
         self.coords = coords
@@ -59,7 +60,7 @@ class CTScan(object):
     def get_augmented_subimages_around_coords(self):
         list_of_images_dict = []
         for i, (z, y, x) in enumerate(self.get_voxel_coords()):
-            img, radius, origin, spacing = get_augmented_cube(self.image, 5, (z, y, x), tuple(self.spacing))
+            img, radius, origin, spacing = get_augmented_cube(self.image, self.radii[i], (z, y, x), tuple(self.spacing))
             list_of_images_dict.append({'img': img, 'radius': radius, 'origin': origin, 'spacing': spacing})
         return list_of_images_dict
 
