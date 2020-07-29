@@ -12,7 +12,7 @@ nodule_coords_annot = annotations[annotations['seriesuid'] == test_filename]
 tp_co = [(a['coordZ'], a['coordY'], a['coordX']) for a in nodule_coords_annot.iloc]
 radii = [(a['diameter_mm'] / 2) for a in nodule_coords_annot.iloc]
 ct = CTScan(filename=test_filename, coords=tp_co, radii=radii)
-ct.transform()
+ct.preprocess()
 for i, (original_z, original_y, original_x) in enumerate(tp_co):
     times_to_sample = 1
     if radii[i] > 15.:
