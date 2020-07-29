@@ -1,6 +1,8 @@
 import torch
 from torch import nn
 
+ANCHORS = [10.0, 30.0, 60.]
+
 
 class PostRes(nn.Module):
     def __init__(self, n_in, n_out, stride=1):
@@ -85,10 +87,10 @@ class Net(nn.Module):
             nn.ConvTranspose3d(64, 64, kernel_size=2, stride=2),
             nn.BatchNorm3d(64),
             nn.ReLU(inplace=True))
-        self.drop = nn.Dropout3d(p=0.2, inplace=False)
+        self.drop = nn.Dropout3d(p=0.5, inplace=False)
         self.output = nn.Sequential(nn.Conv3d(self.featureNum_back[0], 64, kernel_size=1),
                                     nn.ReLU(),
-                                    nn.Conv3d(64, 5 * 3, kernel_size=1))
+                                    nn.Conv3d(64, 5 * len(ANCHORS), kernel_size=1))
 
     def forward(self, x, coord):
         out = self.preBlock(x)  # 16
@@ -103,10 +105,10 @@ class Net(nn.Module):
         rev3 = self.path1(out4)
         comb3 = self.back3(torch.cat((rev3, out3), 1))  # 96+96
         rev2 = self.path2(comb3)
-        feat = self.back2(torch.cat((rev2, out2, coord), 1))  # 64+64
-        comb2 = self.drop(feat)
+        comb2 = self.back2(torch.cat((rev2, out2, coord), 1))  # 64+64
+        comb2 = self.drop(comb2)
         out = self.output(comb2)
         size = out.size()
         out = out.view(out.size(0), out.size(1), -1)
-        out = out.transpose(1, 2).contiguous().view(size[0], size[2], size[3], size[4], 3, 5)
-        return feat, out
+        out = out.transpose(1, 2).contiguous().view(size[0], size[2], size[3], size[4], len(ANCHORS), 5)
+        return out
