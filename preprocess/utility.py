@@ -62,9 +62,6 @@ def random_crop(img: np.array, origin: tuple, radius: float, spacing: tuple, blo
         shift = np.random.randint(low=-abs(high), high=abs(high))
         new_origin[i] += shift
         shifts.append(shift)
-    print('---------------------------')
-    print(img.shape, tuple(new_origin), origin, tuple(shifts), block_size, pad_value)
-    print('---------------------------')
     out_img = _get_cube_from_img_new(img, origin=tuple(new_origin), block_size=block_size, pad_value=pad_value)
     out_origin = np.array([int(block_size / 2)] * len(origin), dtype=int) - np.array(shifts, dtype=int)
     return out_img, tuple(out_origin)
@@ -147,10 +144,6 @@ def get_augmented_cube(img: np.array, radius: float, origin: tuple, spacing: tup
     scale_factor = np.random.random() / 2 + .75
     rotate_id = np.random.randint(0, 24)
     img1, spacing1, origin1, radius1 = scale(img, scale_factor=scale_factor, spacing=spacing, origin=origin, r=radius)
-    print('+++++++++++++++')
-    print(img.shape, scale_factor, img1.shape)
-    print(origin, scale_factor, origin1)
-    print('+++++++++++++++')
     img2, origin2 = random_crop(img=img1, origin=origin1, radius=radius1, spacing=spacing1, block_size=block_size,
                                 pad_value=pad_value, margin=margin)
     img3, spacing2, origin3 = rotate(img=img2, spacing=spacing1, origin=origin2, rotate_id=rotate_id)
