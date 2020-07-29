@@ -57,22 +57,16 @@ class CTScan(object):
     def get_image(self):
         return self.image
 
-    def get_augmented_subimages_around_coords(self):
-        list_of_images_dict = []
-        for i, (z, y, x) in enumerate(self.get_voxel_coords()):
-            img, radius, origin, spacing = get_augmented_cube(self.image, self.radii[i], (z, y, x), tuple(self.spacing))
-            list_of_images_dict.append({'img': img, 'radius': radius, 'origin': origin, 'spacing': spacing})
-        return list_of_images_dict
+    def get_augmented_subimage(self, idx, rot_id=None):
+        (z, y, x) = self.get_world_to_voxel_coords(idx=idx)
+        return get_augmented_cube(self.image, self.radii[idx], (z, y, x), tuple(self.spacing),
+                                  rot_id=rot_id)
 
     def get_subimages(self):
         sub_images = []
         shape = self.image.shape
         for i, (z, y, x) in enumerate(self.get_voxel_coords()):
-            width_candidates = []
-            width_candidates.append(abs(shape[1]-y))
-            width_candidates.append(y)
-            width_candidates.append(abs(shape[2]-x))
-            width_candidates.append(x)
+            width_candidates = [abs(shape[1] - y), y, abs(shape[2] - x), x]
             width = int(np.min(np.array(width_candidates)))
             sub_image = self.image[int(z), int(y - width / 2):int(y + width / 2), int(x - width / 2):int(x + width / 2)]
             sub_images.append(sub_image)

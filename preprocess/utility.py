@@ -140,9 +140,9 @@ def scale(img: np.array, scale_factor: float, spacing: tuple, origin: tuple, r: 
 
 
 def get_augmented_cube(img: np.array, radius: float, origin: tuple, spacing: tuple, block_size=128, pad_value=106,
-                       margin=10):
+                       margin=10, rot_id=None):
     scale_factor = np.random.random() / 2 + .75
-    rotate_id = np.random.randint(0, 24)
+    rotate_id = np.random.randint(0, 24) if not rot_id else rot_id
     img1, spacing1, origin1, radius1 = scale(img, scale_factor=scale_factor, spacing=spacing, origin=origin, r=radius)
     img2, origin2 = random_crop(img=img1, origin=origin1, radius=radius1, spacing=spacing1, block_size=block_size,
                                 pad_value=pad_value, margin=margin)
