@@ -97,8 +97,3 @@ class CTScan(object):
     def zero_center(self):
         PIXEL_MEAN = 0.25 * 256
         self.image = self.image - PIXEL_MEAN
-
-    def save_image(self, filename, width):
-        image = self.get_subimage(width)
-        image = self.normalizePlanes(image)
-        Image.fromarray(image * 255).convert('L').save(filename)
