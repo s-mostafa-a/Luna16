@@ -23,11 +23,11 @@ class CTScan(object):
         self._segment_lung_from_ct_scan()
         self._normalize()
         self._zero_center()
+        self._change_coords()
 
     def get_augmented_subimage(self, idx, rot_id=None):
-        (z, y, x) = self._get_world_to_voxel_coords(idx=idx)
-        return get_augmented_cube(self._image, self._radii[idx], (z, y, x), tuple(self._spacing),
-                                  rot_id=rot_id)
+        return get_augmented_cube(img=self._image, radii=self._radii, centers=self._coords,
+                                  spacing=tuple(self._spacing), rot_id=rot_id, main_tumor_idx=idx)
 
     def get_ds(self):
         return self._ds
@@ -38,7 +38,7 @@ class CTScan(object):
     def get_subimages(self):
         sub_images = []
         shape = self._image.shape
-        for i, (z, y, x) in enumerate(self._get_voxel_coords()):
+        for i, (z, y, x) in enumerate(self._coords):
             width_candidates = [abs(shape[1] - y), y, abs(shape[2] - x), x]
             width = int(np.min(np.array(width_candidates)))
             sub_image = self._image[int(z), int(y - width / 2):int(y + width / 2),
@@ -66,11 +66,15 @@ class CTScan(object):
         return voxelCoord.astype(int)
 
     def _get_world_to_voxel_coords(self, idx):
-        return self._world_to_voxel(self._coords[idx])
+        return tuple(self._world_to_voxel(self._coords[idx]))
 
     def _get_voxel_coords(self):
         voxel_coords = [self._get_world_to_voxel_coords(j) for j in range(len(self._coords))]
-        return tuple(voxel_coords)
+        return voxel_coords
+
+    def _change_coords(self):
+        new_coords = self._get_voxel_coords()
+        self._coords = new_coords
 
     def _normalize(self):
         MIN_BOUND = -1200
