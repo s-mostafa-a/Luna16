@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from glob import glob
 
-OUTPUT_PATH = './tmp'
+OUTPUT_PATH = '/Users/mostafa/PycharmProjects/Luna16/preprocess/tmp'
 annotations = pd.read_csv(RESOURCES_PATH + '/annotations.csv')
 candidates = pd.read_csv(RESOURCES_PATH + '/candidates.csv')
 
@@ -52,7 +52,10 @@ def save_augmented_positive_cubes():
                          'radii': existing_radii, 'centers_in_original_image': centers_in_original_image}),
                     ignore_index=True)
                 np.save(f'{OUTPUT_PATH}/positives/{new_file_name}', img)
+            if i > 2:
+                break
         data.to_csv(f'{OUTPUT_PATH}/positive_meta.csv')
+        break
 
 
 def save_augmented_negative_cubes():
@@ -83,8 +86,12 @@ def save_augmented_negative_cubes():
                          'radii': existing_radii, 'centers_in_original_image': centers_in_original_image}),
                     ignore_index=True)
                 np.save(f'{OUTPUT_PATH}/negatives/{new_file_name}', img)
+            if i > 2:
+                break
         data.to_csv(f'{OUTPUT_PATH}/negative_meta.csv')
+        break
 
 
-save_augmented_positive_cubes()
-save_augmented_negative_cubes()
+if __name__ == '__main__':
+    save_augmented_positive_cubes()
+    save_augmented_negative_cubes()

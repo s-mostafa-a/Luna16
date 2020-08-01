@@ -95,7 +95,7 @@ def _get_point_after_2d_rotation(in_points: list, shape: tuple, rot90s: int, fli
             result_point[axes[1]] = previous[axes[0]]
         if flip:
             result_point[0] = shape[0] - 1 - result_point[0]
-        result_points.append(result_point)
+        result_points.append(tuple(result_point))
     return result_points
 
 
@@ -112,7 +112,7 @@ def _get_point_after_3d_rotation(in_points: list, shape: tuple, axes, rot90s: in
             result_point[axes[1]] = previous[axes[0]]
         if flip:
             result_point[other_axis[0]] = shape[other_axis[0]] - 1 - result_point[other_axis[0]]
-        result_points.append(result_point)
+        result_points.append(tuple(result_point))
     return result_points
 
 
