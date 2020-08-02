@@ -5,7 +5,13 @@ import os
 from model.net import Net
 from model.loss import Loss
 from torch.autograd import Variable
+import itertools
+import pandas as pd
+from preprocess.run import OUTPUT_PATH
+from main.dataset import LunaDataSet
+from torch.utils.data import DataLoader
 
+VAL_PCT = 0.2
 TOTAL_EPOCHS = 100
 DEFAULT_LR = 0.01
 
@@ -30,9 +36,10 @@ def train(data_loader, net, loss, epoch, optimizer, get_lr, save_dir='./'):
 
     metrics = []
     for i, (data, target, coord) in enumerate(data_loader):
-        data = Variable(data.cuda())
-        target = Variable(target.cuda())
-        coord = Variable(coord.cuda())
+        # I dont have gpu, so these lines should be commented
+        # data = Variable(data.cuda())
+        # target = Variable(target.cuda())
+        # coord = Variable(coord.cuda())
 
         output = net(data, coord)
         loss_output = loss(output, target)
@@ -100,6 +107,17 @@ optim = torch.optim.SGD(
     DEFAULT_LR,
     momentum=0.9,
     weight_decay=1e-4)
+meta = pd.read_csv(f'{OUTPUT_PATH}/meta.csv', index_col=0).sample(frac=1).reset_index(drop=True)
+meta_group_by_series = meta.groupby(['seriesuid']).indices
+list_of_groups = [{i: list(meta_group_by_series[i])} for i in meta_group_by_series.keys()]
+np.random.shuffle(list_of_groups)
+val_split = int(VAL_PCT * len(list_of_groups))
+val_indices = list(itertools.chain(*[list(i.values())[0] for i in list_of_groups[:val_split]]))
+train_indices = list(itertools.chain(*[list(i.values())[0] for i in list_of_groups[val_split:]]))
+ltd = LunaDataSet(train_indices, meta)
+lvd = LunaDataSet(val_indices, meta)
+train_loader = DataLoader(ltd, batch_size=1, shuffle=False)
+val_loader = DataLoader(lvd, batch_size=1, shuffle=False)
 
 for ep in range(TOTAL_EPOCHS):
     train(train_loader, neural_net, loss_fn, ep, optim, get_lr)

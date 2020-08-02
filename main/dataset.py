@@ -67,8 +67,8 @@ class LunaDataSet(Dataset):
                 for ax in range(len(patch.shape)):
                     point_for_coords[0] = ax
                     coords[tuple(point_for_coords)] = real_world_centers[c][ax]
-        print('clazz', clazz)
-        return patch, target, coords
+        out_patch = patch[np.newaxis,]
+        return out_patch, target, coords
 
     def __len__(self):
         return len(self.indices)
