@@ -2,13 +2,14 @@ from preprocess._ct_scan import CTScan, RESOURCES_PATH
 import pandas as pd
 import numpy as np
 from glob import glob
+import os
 
 OUTPUT_PATH = '/Users/mostafa/PycharmProjects/Luna16/preprocess/tmp'
 annotations = pd.read_csv(RESOURCES_PATH + '/annotations.csv')
 candidates = pd.read_csv(RESOURCES_PATH + '/candidates.csv')
 
 
-def get_positive_series():
+def _get_positive_series():
     paths = glob(RESOURCES_PATH + '/*/' + "*.mhd")
     file_list = [f.split('/')[-1][:-4] for f in paths]
     series = annotations['seriesuid'].tolist()
@@ -16,7 +17,7 @@ def get_positive_series():
     return infected
 
 
-def get_negative_series():
+def _get_negative_series():
     paths = glob(RESOURCES_PATH + '/*/' + "*.mhd")
     file_list = [f.split('/')[-1][:-4] for f in paths]
     series = annotations['seriesuid'].tolist()
@@ -24,9 +25,8 @@ def get_negative_series():
     return cleans
 
 
-def save_augmented_positive_cubes():
-    data = pd.DataFrame(columns=['seriesuid', 'centers', 'radii', 'centers_in_original_image'])
-    for series_id in get_positive_series():
+def _save_augmented_positive_cubes(data: pd.DataFrame):
+    for series_id in _get_positive_series():
         nodule_coords_annot = annotations[annotations['seriesuid'] == series_id]
         tp_co = [(a['coordZ'], a['coordY'], a['coordX']) for a in nodule_coords_annot.iloc]
         radii = [(a['diameter_mm'] / 2) for a in nodule_coords_annot.iloc]
@@ -46,25 +46,26 @@ def save_augmented_positive_cubes():
                 existing_centers = [centers[i] for i in existing_tumors_in_patch]
                 centers_in_original_image = [tuple(np.array(ct.get_coords()[i]) / np.array(ct.get_image().shape)) for i
                                              in existing_tumors_in_patch]
-                new_file_name = f'{series_id}_{i}_{j}.npy'
+                file_path = f'positives/{series_id}_{i}_{j}.npy'
                 data = data.append(
                     pd.Series(
-                        {'seriesuid': series_id, 'file_name': new_file_name, 'centers': existing_centers,
-                         'radii': existing_radii, 'centers_in_original_image': centers_in_original_image}),
+                        {'seriesuid': series_id, 'file_path': file_path, 'centers': existing_centers,
+                         'radii': existing_radii, 'centers_in_original_image': centers_in_original_image, 'class': 1}),
                     ignore_index=True)
-                np.save(f'{OUTPUT_PATH}/positives/{new_file_name}', img)
-            if i > 2:
-                break
-        data.to_csv(f'{OUTPUT_PATH}/positive_meta.csv')
-        break
+                np.save(f'{OUTPUT_PATH}/{file_path}', img)
+    return data
 
 
-def save_augmented_negative_cubes():
-    data = pd.DataFrame(columns=['seriesuid', 'centers', 'radii', 'centers_in_original_image'])
-    for series_id in get_negative_series():
+def _save_augmented_negative_cubes(data: pd.DataFrame):
+    needing_number_of_negatives = len(data) / 2
+    all_negatives_added = 0
+    for series_id in _get_negative_series():
         nodule_coords_candid = candidates[candidates['seriesuid'] == series_id]
         tp_co = [(a['coordZ'], a['coordY'], a['coordX']) for a in nodule_coords_candid.iloc]
         radii = list(np.random.randint(40, size=len(tp_co)))
+        max_numbers_to_use = min(len(tp_co), 3)
+        tp_co = tp_co[:max_numbers_to_use]
+        radii = radii[:max_numbers_to_use]
         ct = CTScan(filename=series_id, coords=tp_co, radii=radii)
         ct.preprocess()
         for i in range(len(tp_co)):
@@ -81,19 +82,26 @@ def save_augmented_negative_cubes():
                 existing_centers = [centers[i] for i in existing_tumors_in_patch]
                 centers_in_original_image = [tuple(np.array(ct.get_coords()[i]) / np.array(ct.get_image().shape)) for i
                                              in existing_tumors_in_patch]
-                new_file_name = f'{series_id}_{i}_{j}.npy'
+                file_path = f'negatives/{series_id}_{i}_{j}.npy'
                 data = data.append(
                     pd.Series(
-                        {'seriesuid': series_id, 'file_name': new_file_name, 'centers': existing_centers,
-                         'radii': existing_radii, 'centers_in_original_image': centers_in_original_image}),
+                        {'seriesuid': series_id, 'file_path': file_path, 'centers': existing_centers,
+                         'radii': existing_radii, 'centers_in_original_image': centers_in_original_image, 'class': 0}),
                     ignore_index=True)
-                np.save(f'{OUTPUT_PATH}/negatives/{new_file_name}', img)
-            if i > 2:
-                break
-        data.to_csv(f'{OUTPUT_PATH}/negative_meta.csv')
-        break
+                np.save(f'{OUTPUT_PATH}/{file_path}', img)
+                all_negatives_added += 1
+        if all_negatives_added > needing_number_of_negatives:
+            break
+    return data
+
+
+def save_augmented_data():
+    [os.makedirs(d, exist_ok=True) for d in [f'{OUTPUT_PATH}/positives', f'{OUTPUT_PATH}/negatives']]
+    data = pd.DataFrame(columns=['seriesuid', 'file_path', 'centers', 'radii', 'centers_in_original_image', 'class'])
+    data = _save_augmented_positive_cubes(data=data)
+    data = _save_augmented_negative_cubes(data=data)
+    data.to_csv(f'{OUTPUT_PATH}/meta.csv')
 
 
 if __name__ == '__main__':
-    save_augmented_positive_cubes()
-    save_augmented_negative_cubes()
+    save_augmented_data()
