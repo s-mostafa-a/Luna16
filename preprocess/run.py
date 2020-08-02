@@ -44,7 +44,8 @@ def save_augmented_positive_cubes():
                                                                                                     rot_id=rot_id)
                 existing_radii = [radii2[i] for i in existing_tumors_in_patch]
                 existing_centers = [centers[i] for i in existing_tumors_in_patch]
-                centers_in_original_image = [tp_co[i] for i in existing_tumors_in_patch]
+                centers_in_original_image = [tuple(np.array(ct.get_coords()[i]) / np.array(ct.get_image().shape)) for i
+                                             in existing_tumors_in_patch]
                 new_file_name = f'{series_id}_{i}_{j}.npy'
                 data = data.append(
                     pd.Series(
@@ -78,7 +79,8 @@ def save_augmented_negative_cubes():
                                                                                                     rot_id=rot_id)
                 existing_radii = [radii2[i] for i in existing_tumors_in_patch]
                 existing_centers = [centers[i] for i in existing_tumors_in_patch]
-                centers_in_original_image = [tp_co[i] for i in existing_tumors_in_patch]
+                centers_in_original_image = [tuple(np.array(ct.get_coords()[i]) / np.array(ct.get_image().shape)) for i
+                                             in existing_tumors_in_patch]
                 new_file_name = f'{series_id}_{i}_{j}.npy'
                 data = data.append(
                     pd.Series(

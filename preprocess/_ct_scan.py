@@ -35,6 +35,9 @@ class CTScan(object):
     def get_image(self):
         return self._image
 
+    def get_coords(self):
+        return self._coords
+
     def get_subimages(self):
         sub_images = []
         shape = self._image.shape
