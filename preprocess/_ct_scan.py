@@ -2,9 +2,7 @@ import scipy.misc
 import numpy as np
 import SimpleITK as sitk
 from preprocess.utility import get_segmented_lungs, get_augmented_cube
-
-RESOURCES_PATH = '/Users/mostafa/Desktop/dsb_analyse/input'
-SUB_DIRECTORY = '/subset0/'
+from configs import RESOURCES_PATH, SUB_DIRECTORY
 
 
 class CTScan(object):

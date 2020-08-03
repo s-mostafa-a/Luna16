@@ -7,13 +7,9 @@ from model.loss import Loss
 # from torch.autograd import Variable
 import itertools
 import pandas as pd
-from preprocess.run import OUTPUT_PATH
 from main.dataset import LunaDataSet
 from torch.utils.data import DataLoader
-
-VAL_PCT = 0.2
-TOTAL_EPOCHS = 100
-DEFAULT_LR = 0.01
+from configs import VAL_PCT, TOTAL_EPOCHS, DEFAULT_LR, OUTPUT_PATH
 
 
 def get_lr(epoch):
@@ -36,7 +32,7 @@ def train(data_loader, net, loss, epoch, optimizer, get_lr, save_dir='./models/'
 
     metrics = []
     for i, (data, target, coord) in enumerate(data_loader):
-        # I dont have gpu, so these lines should be commented
+        # UNCOMMENT IF YOU HAVE CUDA, I dont have gpu, so these lines should be commented
         # data = Variable(data.cuda())
         # target = Variable(target.cuda())
         # coord = Variable(coord.cuda())
@@ -82,7 +78,7 @@ def validate(data_loader, net, loss):
 
     metrics = []
     for i, (data, target, coord) in enumerate(data_loader):
-        # I dont have gpu, so these lines should be commented
+        # UNCOMMENT IF YOU HAVE CUDA, I dont have gpu, so these lines should be commented
         # data = Variable(data.cuda())
         # target = Variable(target.cuda())
         # coord = Variable(coord.cuda())
@@ -107,27 +103,28 @@ def validate(data_loader, net, loss):
             {np.mean(metrics[:, 4])}, {np.mean(metrics[:, 5])}''')
 
 
-neural_net = Net()
-loss_fn = Loss()
-optim = torch.optim.SGD(
-    neural_net.parameters(),
-    DEFAULT_LR,
-    momentum=0.9,
-    weight_decay=1e-4)
-meta = pd.read_csv(f'{OUTPUT_PATH}/meta.csv', index_col=0).sample(frac=1).reset_index(drop=True)
-meta_group_by_series = meta.groupby(['seriesuid']).indices
-list_of_groups = [{i: list(meta_group_by_series[i])} for i in meta_group_by_series.keys()]
-np.random.shuffle(list_of_groups)
-val_split = int(VAL_PCT * len(list_of_groups))
-val_indices = list(itertools.chain(*[list(i.values())[0] for i in list_of_groups[:val_split]]))
-train_indices = list(itertools.chain(*[list(i.values())[0] for i in list_of_groups[val_split:]]))
-ltd = LunaDataSet(train_indices, meta)
-lvd = LunaDataSet(val_indices, meta)
-train_loader = DataLoader(ltd, batch_size=1, shuffle=False)
-val_loader = DataLoader(lvd, batch_size=1, shuffle=False)
+if __name__ == '__main__':
+    neural_net = Net()
+    loss_fn = Loss()
+    optim = torch.optim.SGD(
+        neural_net.parameters(),
+        DEFAULT_LR,
+        momentum=0.9,
+        weight_decay=1e-4)
+    meta = pd.read_csv(f'{OUTPUT_PATH}/meta.csv', index_col=0).sample(frac=1).reset_index(drop=True)
+    meta_group_by_series = meta.groupby(['seriesuid']).indices
+    list_of_groups = [{i: list(meta_group_by_series[i])} for i in meta_group_by_series.keys()]
+    np.random.shuffle(list_of_groups)
+    val_split = int(VAL_PCT * len(list_of_groups))
+    val_indices = list(itertools.chain(*[list(i.values())[0] for i in list_of_groups[:val_split]]))
+    train_indices = list(itertools.chain(*[list(i.values())[0] for i in list_of_groups[val_split:]]))
+    ltd = LunaDataSet(train_indices, meta)
+    lvd = LunaDataSet(val_indices, meta)
+    train_loader = DataLoader(ltd, batch_size=1, shuffle=False)
+    val_loader = DataLoader(lvd, batch_size=1, shuffle=False)
 
-save_dir = './models/'
-os.makedirs(save_dir, exist_ok=True)
-for ep in range(TOTAL_EPOCHS):
-    train(train_loader, neural_net, loss_fn, ep, optim, get_lr, save_dir=save_dir)
-    validate(val_loader, neural_net, loss_fn)
+    save_dir = f'{OUTPUT_PATH}/models/'
+    os.makedirs(save_dir, exist_ok=True)
+    for ep in range(TOTAL_EPOCHS):
+        train(train_loader, neural_net, loss_fn, ep, optim, get_lr, save_dir=save_dir)
+        validate(val_loader, neural_net, loss_fn)

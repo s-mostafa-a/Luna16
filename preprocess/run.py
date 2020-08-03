@@ -1,10 +1,10 @@
-from preprocess._ct_scan import CTScan, RESOURCES_PATH
+from preprocess._ct_scan import CTScan
 import pandas as pd
 import numpy as np
 from glob import glob
 import os
+from configs import OUTPUT_PATH, RESOURCES_PATH
 
-OUTPUT_PATH = '/Users/mostafa/PycharmProjects/Luna16/preprocess/tmp'
 annotations = pd.read_csv(RESOURCES_PATH + '/annotations.csv')
 candidates = pd.read_csv(RESOURCES_PATH + '/candidates.csv')
 

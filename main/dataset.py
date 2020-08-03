@@ -1,14 +1,9 @@
 from torch.utils.data import Dataset
 import pandas as pd
-from preprocess.run import OUTPUT_PATH
 from ast import literal_eval
 from copy import deepcopy
 import numpy as np
-
-BLOCK_SIZE = 128
-TARGET_SHAPE = (32, 32, 32, 3, 5)
-COORDS_SHAPE = (3, 32, 32, 32)
-ANCHOR_SIZES = [10, 30, 60]
+from configs import BLOCK_SIZE, TARGET_SHAPE, COORDS_SHAPE, ANCHOR_SIZES, OUTPUT_PATH
 
 
 class LunaDataSet(Dataset):

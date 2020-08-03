@@ -6,7 +6,7 @@ Their code (except for their model) was not readable to me at all, hence I am go
 I hope it helps researchers.
 If you have any questions on the code, please send an [email to me](mailto:s.mostafa.a96@gmail.com?subject=[GitHub]%20LUNA16%20grt123).
 # Till now
-Preprocess steps:
+## Preprocess steps:
 
 The image bellow shows how these steps can be done.
 
@@ -23,7 +23,7 @@ The image bellow shows how these steps can be done.
 
 ![preprocess](./preprocess.png)
 
-And data augmentations steps:
+## Data augmentations steps:
 
 * Scaling the 3d image with a scale factor between 0.75 and 1.25 (their scale factor is between 0.8 and 1.15, I changed it for simplicity)
 * Random Cropping the 3d image which contains nodule in it. All details are the same as their paper.
@@ -35,3 +35,10 @@ This is a part of their paper which is related to data augmentation:
 To overcome [the problem of being hard to work with 3d images], small 3D patches are extracted from the lung scans and input to the network individually. The size of the patch is 128×128×128×1 (Height×Length× Width×Channel, the same notation is used in what follows). Two kinds of patches are randomly selected. First, 70% of the inputs are selected so that they contain at least one nodule. Second, 30% of the inputs are cropped randomly from lung scans and may not contain any nodules. The latter kind of inputs ensures the coverage of enough negative samples.
 If a patch goes beyond the range of lung scans, it is padded with value 170, same as in the preprocessing step. The nodule targets are not necessarily located at the center of the patch but had a margin larger than 12 pixels from the boundary of the patch (except for a few nodules that are too large).
 Data augmentation is used to alleviate the over-fitting prob- lem. The patches are randomly left-right flipped and resized with a ratio between 0.8 and 1.15. `
+
+## Loading and training
+Loads the saved augmented data to a torch dataset and uses it to form a data loader and then feed the model as well as computing the loss. (the model and loss computing is pretty much their code with some minor changes)
+
+# How to use
+I am working on the code constantly these days, but if you need it before I clean it up, you first should change first 3 variables in `configs.py` file, then run `preprocess/run.py`, and then run `main/train.py`.
+Keep in mind that I don't have cuda right now, so if you have cuda you should uncomment the parts which I have marked with <i><b>UNCOMMENT IF YOU HAVE CUDA</b></i>.

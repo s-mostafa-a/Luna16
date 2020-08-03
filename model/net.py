@@ -1,7 +1,6 @@
 import torch
 from torch import nn
-
-ANCHORS = [10.0, 30.0, 60.]
+from configs import ANCHOR_SIZES
 
 
 class PostRes(nn.Module):
@@ -90,7 +89,7 @@ class Net(nn.Module):
         self.drop = nn.Dropout3d(p=0.5, inplace=False)
         self.output = nn.Sequential(nn.Conv3d(self.featureNum_back[0], 64, kernel_size=1),
                                     nn.ReLU(),
-                                    nn.Conv3d(64, 5 * len(ANCHORS), kernel_size=1))
+                                    nn.Conv3d(64, 5 * len(ANCHOR_SIZES), kernel_size=1))
 
     def forward(self, x, coord):
         out = self.preBlock(x)  # 16
@@ -110,5 +109,5 @@ class Net(nn.Module):
         out = self.output(comb2)
         size = out.size()
         out = out.view(out.size(0), out.size(1), -1)
-        out = out.transpose(1, 2).contiguous().view(size[0], size[2], size[3], size[4], len(ANCHORS), 5)
+        out = out.transpose(1, 2).contiguous().view(size[0], size[2], size[3], size[4], len(ANCHOR_SIZES), 5)
         return out
