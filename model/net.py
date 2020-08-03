@@ -93,7 +93,7 @@ class Net(nn.Module):
                                     nn.Conv3d(64, 5 * len(ANCHORS), kernel_size=1))
 
     def forward(self, x, coord):
-        out = self.preBlock(x.float())  # 16
+        out = self.preBlock(x)  # 16
         out_pool, indices0 = self.maxpool1(out)
         out1 = self.forw1(out_pool)  # 32
         out1_pool, indices1 = self.maxpool2(out1)
@@ -105,7 +105,7 @@ class Net(nn.Module):
         rev3 = self.path1(out4)
         comb3 = self.back3(torch.cat((rev3, out3), 1))  # 96+96
         rev2 = self.path2(comb3)
-        comb2 = self.back2(torch.cat((rev2, out2, coord.float()), 1))  # 64+64
+        comb2 = self.back2(torch.cat((rev2, out2, coord), 1))  # 64+64
         comb2 = self.drop(comb2)
         out = self.output(comb2)
         size = out.size()

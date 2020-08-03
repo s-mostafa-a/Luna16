@@ -4,7 +4,7 @@ import time
 import os
 from model.net import Net
 from model.loss import Loss
-from torch.autograd import Variable
+# from torch.autograd import Variable
 import itertools
 import pandas as pd
 from preprocess.run import OUTPUT_PATH
@@ -26,7 +26,7 @@ def get_lr(epoch):
     return lr
 
 
-def train(data_loader, net, loss, epoch, optimizer, get_lr, save_dir='./'):
+def train(data_loader, net, loss, epoch, optimizer, get_lr, save_dir='./models/'):
     start_time = time.time()
 
     net.train()
@@ -40,6 +40,9 @@ def train(data_loader, net, loss, epoch, optimizer, get_lr, save_dir='./'):
         # data = Variable(data.cuda())
         # target = Variable(target.cuda())
         # coord = Variable(coord.cuda())
+        data = data.float()
+        target = target.float()
+        coord = coord.float()
 
         output = net(data, coord)
         loss_output = loss(output, target)
@@ -47,11 +50,11 @@ def train(data_loader, net, loss, epoch, optimizer, get_lr, save_dir='./'):
         loss_output[0].backward()
         optimizer.step()
 
-        loss_output[0] = loss_output[0].data[0]
+        loss_output[0] = loss_output[0].item()
         metrics.append(loss_output)
-
+        break
     if epoch % 10 == 0:
-        state_dict = net.module.state_dict()
+        state_dict = net.state_dict()
         for key in state_dict.keys():
             state_dict[key] = state_dict[key].cpu()
         torch.save({
@@ -79,14 +82,18 @@ def validate(data_loader, net, loss):
 
     metrics = []
     for i, (data, target, coord) in enumerate(data_loader):
-        data = Variable(data.cuda())
-        target = Variable(target.cuda())
-        coord = Variable(coord.cuda())
+        # I dont have gpu, so these lines should be commented
+        # data = Variable(data.cuda())
+        # target = Variable(target.cuda())
+        # coord = Variable(coord.cuda())
+        data = data.float()
+        target = target.float()
+        coord = coord.float()
 
         output = net(data, coord)
         loss_output = loss(output, target, train=False)
 
-        loss_output[0] = loss_output[0].data[0]
+        loss_output[0] = loss_output[0].item()
         metrics.append(loss_output)
     end_time = time.time()
 
@@ -119,6 +126,8 @@ lvd = LunaDataSet(val_indices, meta)
 train_loader = DataLoader(ltd, batch_size=1, shuffle=False)
 val_loader = DataLoader(lvd, batch_size=1, shuffle=False)
 
+save_dir = './models/'
+os.makedirs(save_dir, exist_ok=True)
 for ep in range(TOTAL_EPOCHS):
-    train(train_loader, neural_net, loss_fn, ep, optim, get_lr)
+    train(train_loader, neural_net, loss_fn, ep, optim, get_lr, save_dir=save_dir)
     validate(val_loader, neural_net, loss_fn)

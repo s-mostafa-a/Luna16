@@ -27,7 +27,7 @@ class Loss(nn.Module):
         pos_output = output[pos_idcs].view(-1, 5)
         pos_labels = labels[pos_idcs].view(-1, 5)
 
-        neg_idcs = labels[:, 0] < -0.5
+        neg_idcs = labels[:, 0] < 0.5
         neg_output = output[:, 0][neg_idcs]
         neg_labels = labels[:, 0][neg_idcs]
 
@@ -43,7 +43,7 @@ class Loss(nn.Module):
                 self.regress_loss(ph, lh),
                 self.regress_loss(pw, lw),
                 self.regress_loss(pd, ld)]
-            regress_losses_data = [loz.data[0] for loz in regress_losses]
+            regress_losses_data = [loz.item() for loz in regress_losses]
             classify_loss = 0.5 * self.classify_loss(
                 pos_prob, pos_labels[:, 0]) + 0.5 * self.classify_loss(
                 neg_prob, neg_labels + 1)
@@ -57,7 +57,7 @@ class Loss(nn.Module):
             pos_correct = 0
             pos_total = 0
             regress_losses_data = [0, 0, 0, 0]
-        classify_loss_data = classify_loss.data[0]
+        classify_loss_data = classify_loss.item()
         loss = classify_loss
         for regress_loss in regress_losses:
             loss += regress_loss
