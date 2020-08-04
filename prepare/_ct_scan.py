@@ -25,7 +25,7 @@ class CTScan(object):
 
     def get_augmented_subimage(self, idx, rot_id=None):
         return get_augmented_cube(img=self._image, radii=self._radii, centers=self._coords,
-                                  spacing=tuple(self._spacing), rot_id=rot_id, main_tumor_idx=idx)
+                                  spacing=tuple(self._spacing), rot_id=rot_id, main_nodule_idx=idx)
 
     def get_ds(self):
         return self._ds

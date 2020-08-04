@@ -59,12 +59,12 @@ def _get_cube_from_img_new(img, origin: tuple, block_size=128, pad_value=106.):
     return result
 
 
-def random_crop(img: np.array, centers: list, radii: list, main_tumor_idx: int, spacing: tuple, block_size: int,
+def random_crop(img: np.array, centers: list, radii: list, main_nodule_idx: int, spacing: tuple, block_size: int,
                 pad_value: float, margin: int):
-    max_radius_index = np.max(np.round(radii[main_tumor_idx] / np.array(spacing)).astype(int))
-    center_of_cube = list(centers[main_tumor_idx])
+    max_radius_index = np.max(np.round(radii[main_nodule_idx] / np.array(spacing)).astype(int))
+    center_of_cube = list(centers[main_nodule_idx])
     shifts = []
-    for i in range(len(centers[main_tumor_idx])):
+    for i in range(len(centers[main_nodule_idx])):
         high = int(block_size / 2) - max_radius_index - margin
         if high < 0:
             print('negative high!!!')
@@ -75,7 +75,7 @@ def random_crop(img: np.array, centers: list, radii: list, main_tumor_idx: int, 
     out_img = _get_cube_from_img_new(img, origin=tuple(center_of_cube), block_size=block_size, pad_value=pad_value)
     out_centers = []
     for i in range(len(centers)):
-        diff = np.array(centers[main_tumor_idx]) - np.array(centers[i])
+        diff = np.array(centers[main_nodule_idx]) - np.array(centers[i])
         out_centers.append(
             tuple(np.array([int(block_size / 2)] * len(centers[i]), dtype=int) - np.array(shifts, dtype=int) - diff))
     return out_img, out_centers
@@ -159,13 +159,13 @@ def scale(img: np.array, scale_factor: float, spacing: tuple, centers: list, rad
     return img1, tuple(spacing), out_centers, out_radii
 
 
-def get_augmented_cube(img: np.array, radii: list, centers: list, main_tumor_idx: int, spacing: tuple, block_size=128,
+def get_augmented_cube(img: np.array, radii: list, centers: list, main_nodule_idx: int, spacing: tuple, block_size=128,
                        pad_value=106, margin=10, rot_id=None):
     scale_factor = np.random.random() / 2 + .75
     rotate_id = np.random.randint(0, 24) if not rot_id else rot_id
     img1, spacing1, centers1, radii1 = scale(img, scale_factor=scale_factor, spacing=spacing, centers=centers,
                                              radii=radii)
-    img2, centers2 = random_crop(img=img1, centers=centers1, radii=radii1, main_tumor_idx=main_tumor_idx,
+    img2, centers2 = random_crop(img=img1, centers=centers1, radii=radii1, main_nodule_idx=main_nodule_idx,
                                  spacing=spacing1, block_size=block_size, pad_value=pad_value, margin=margin)
     existing_centers_in_patch = []
     for i in range(len(centers2)):
