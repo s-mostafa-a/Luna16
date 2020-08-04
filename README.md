@@ -4,6 +4,8 @@ In this repository, I have tried to develop a readable documented code for Lung 
 Their code (except for their model) was not readable to me at all, hence I have gone through [their paper](https://arxiv.org/abs/1711.08324).
 And it is normal for their repository not to be readable, because it is originally coded for a competition! So there is no blame on them. :)
 
+
+Their code can not be used without GPU.
 Also, another disadvantage of their code is that they use data pre-processing and augmentation at the training time, I have decoupled the preprocess and augmentation from training.
 
 I hope it helps researchers.
