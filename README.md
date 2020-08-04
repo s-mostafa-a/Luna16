@@ -40,5 +40,5 @@ Data augmentation is used to alleviate the over-fitting prob- lem. The patches a
 Loads the saved augmented data to a torch dataset and uses it to form a data loader and then feed the model as well as computing the loss. (the model and loss computing is pretty much their code with some minor changes)
 
 # How to use
-I am working on the code constantly these days, but if you need it before I clean it up, you first should change first 3 variables in `configs.py` file, then run `preprocess/run.py`, and then run `main/train.py`.
+I am working on the code constantly these days, but if you need it before I clean it up, you first should change first 3 variables in `configs.py` file, then run `prepare/run.py`, and then run `main/train.py`.
 Keep in mind that I don't have cuda right now, so if you have cuda you should uncomment the parts which I have marked with <i><b>UNCOMMENT IF YOU HAVE CUDA</b></i>.

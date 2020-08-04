@@ -1,4 +1,4 @@
-from preprocess._ct_scan import CTScan
+from prepare._ct_scan import CTScan
 import pandas as pd
 import numpy as np
 from glob import glob

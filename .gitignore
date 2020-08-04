@@ -2,6 +2,6 @@ venv/
 .idea/
 */__pycache__/
 */.DS_Store
-/preprocess/tmp
+/prepare/tmp
 .DS_Store
 notebooks/.ipynb_checkpoints

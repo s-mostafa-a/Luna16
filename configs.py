@@ -1,4 +1,4 @@
-OUTPUT_PATH = '/Users/mostafa/PycharmProjects/Luna16/preprocess/tmp'
+OUTPUT_PATH = '/prepare/tmp'
 RESOURCES_PATH = '/Users/mostafa/Desktop/dsb_analyse/input'
 SUB_DIRECTORY = '/subset0/'
 

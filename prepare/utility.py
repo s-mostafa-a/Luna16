@@ -90,11 +90,11 @@ def _get_point_after_2d_rotation(in_points: list, shape: tuple, rot90s: int, fli
         for i in range(rot90s):
             previous = result_point.copy()
             axes = [0, 1]
-            point_complement = (shape[0] - 1 - previous[0], shape[1] - 1 - previous[1])
+            point_complement = (shape[0] - previous[0], shape[1] - previous[1])
             result_point[axes[0]] = point_complement[axes[1]]
             result_point[axes[1]] = previous[axes[0]]
         if flip:
-            result_point[0] = shape[0] - 1 - result_point[0]
+            result_point[0] = shape[0] - result_point[0]
         result_points.append(tuple(result_point))
     return result_points
 
@@ -107,11 +107,11 @@ def _get_point_after_3d_rotation(in_points: list, shape: tuple, axes, rot90s: in
         other_axis = [item for item in [0, 1, 2] if item not in axes]
         for i in range(rot90s):
             previous = result_point.copy()
-            point_complement = np.array(shape, dtype=int) - np.array(previous, dtype=int) - 1
+            point_complement = np.array(shape, dtype=int) - np.array(previous, dtype=int)
             result_point[axes[0]] = point_complement[axes[1]]
             result_point[axes[1]] = previous[axes[0]]
         if flip:
-            result_point[other_axis[0]] = shape[other_axis[0]] - 1 - result_point[other_axis[0]]
+            result_point[other_axis[0]] = shape[other_axis[0]] - result_point[other_axis[0]]
         result_points.append(tuple(result_point))
     return result_points
 

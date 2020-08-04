@@ -1,7 +1,7 @@
 import scipy.misc
 import numpy as np
 import SimpleITK as sitk
-from preprocess.utility import get_segmented_lungs, get_augmented_cube
+from prepare.utility import get_segmented_lungs, get_augmented_cube
 from configs import RESOURCES_PATH, SUB_DIRECTORY
 
 
