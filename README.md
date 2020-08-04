@@ -8,7 +8,7 @@ Also, another disadvantage of their code is that they use data pre-processing an
 
 I hope it helps researchers.
 If you have any questions on the code, please send an [email to me](mailto:s.mostafa.a96@gmail.com?subject=[GitHub]%20LUNA16%20grt123).
-# Directory description
+# Code description
 ## Prepare
 I have written the code of preparation in `prepare` and it contains almost all data pre-processing and augmentation steps of [their paper](https://arxiv.org/abs/1711.08324).
 
@@ -26,7 +26,7 @@ Also, loss computation at `model/loss.py` is an IOU approach, to know the detail
 
 ![Net](./notebooks/figs/net.png)
 
-## Loading and Training
+## Main
 In `main/dataset.py` I have written the `LunaDataSet` class which loads the saved augmented data to a torch `Dataset` and uses it to form a `DataLoader` and then feed the model as well as computing the loss.
 
 # How to use
