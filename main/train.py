@@ -94,10 +94,7 @@ def validate(data_loader, net, loss):
     end_time = time.time()
 
     metrics = np.asarray(metrics, np.float32)
-    print(f'''Validation: tpr {100.0 * np.sum(metrics[:, 6]) / np.sum(metrics[:, 7])},
-            tnr {100.0 * np.sum(metrics[:, 8]) / np.sum(metrics[:, 9])}, 
-            total pos {np.sum(metrics[:, 7])}, total neg {np.sum(metrics[:, 9])}, 
-            time {end_time - start_time}''')
+    print(f'''time {end_time - start_time}''')
     print(f'''loss {np.mean(metrics[:, 0])}, classify loss {np.mean(metrics[:, 1])},
             regress loss {np.mean(metrics[:, 2])}, {np.mean(metrics[:, 3])}, 
             {np.mean(metrics[:, 4])}, {np.mean(metrics[:, 5])}''')

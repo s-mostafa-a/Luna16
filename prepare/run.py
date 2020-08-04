@@ -41,7 +41,7 @@ def _save_augmented_positive_cubes(data: pd.DataFrame):
             for j in range(times_to_sample):
                 rot_id = int((j / times_to_sample) * 24 + np.random.randint(0, int(24 / times_to_sample)))
                 img, radii2, centers, spacing, existing_nodules_in_patch = ct.get_augmented_subimage(idx=i,
-                                                                                                    rot_id=rot_id)
+                                                                                                     rot_id=rot_id)
                 existing_radii = [radii2[i] for i in existing_nodules_in_patch]
                 existing_centers = [centers[i] for i in existing_nodules_in_patch]
                 centers_in_original_image = [tuple(np.array(ct.get_coords()[i]) / np.array(ct.get_image().shape)) for i
@@ -77,7 +77,7 @@ def _save_augmented_negative_cubes(data: pd.DataFrame):
             for j in range(times_to_sample):
                 rot_id = int((j / times_to_sample) * 24 + np.random.randint(0, int(24 / times_to_sample)))
                 img, radii2, centers, spacing, existing_nodules_in_patch = ct.get_augmented_subimage(idx=i,
-                                                                                                    rot_id=rot_id)
+                                                                                                     rot_id=rot_id)
                 existing_radii = [radii2[i] for i in existing_nodules_in_patch]
                 existing_centers = [centers[i] for i in existing_nodules_in_patch]
                 centers_in_original_image = [tuple(np.array(ct.get_coords()[i]) / np.array(ct.get_image().shape)) for i

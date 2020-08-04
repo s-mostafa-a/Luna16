@@ -1,5 +1,5 @@
 # some directory for output the results:
-OUTPUT_PATH = '/prepare/tmp'
+OUTPUT_PATH = '/Users/mostafa/PycharmProjects/Luna/prepare/tmp'
 
 # resource path which contains: annotations.csv, candidates.csv, and [subset0]
 RESOURCES_PATH = '/Users/mostafa/Desktop/dsb_analyse/input'
