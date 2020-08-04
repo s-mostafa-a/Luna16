@@ -1,5 +1,9 @@
+# some directory for output the results:
 OUTPUT_PATH = '/prepare/tmp'
+
+# resource path which contains: annotations.csv, candidates.csv, and [subset0]
 RESOURCES_PATH = '/Users/mostafa/Desktop/dsb_analyse/input'
+# if you downloaded all subsets, put their files in one directory and change the following variable to its name
 SUB_DIRECTORY = '/subset0/'
 
 

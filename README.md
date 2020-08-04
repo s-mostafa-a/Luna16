@@ -1,44 +1,41 @@
-# Luna16 object detection
-Trying to develop a readable documented repository for Lung Nodule Detection. (Based on the approach of team "[grt123](https://github.com/lfz/DSB2017)" which stood on the first place of DSB2017)
+# LUNA16 object detection
+In this repository, I have tried to develop a readable documented code for Lung Nodule Detection. (Based on the approach of the team "[grt123](https://github.com/lfz/DSB2017)" which stood on the first place of [DSB2017](https://www.kaggle.com/c/data-science-bowl-2017/leaderboard))
 
-Their code (except for their model) was not readable to me at all, hence I am going through [their paper](https://arxiv.org/abs/1711.08324).
+Their code (except for their model) was not readable to me at all, hence I have gone through [their paper](https://arxiv.org/abs/1711.08324).
+And it is normal for their repository not to be readable, because it is originally coded for a competition! So there is no blame on them. :)
+
+Also, another disadvantage of their code is that they use data pre-processing and augmentation at the training time, I have decoupled the preprocess and augmentation from training.
 
 I hope it helps researchers.
 If you have any questions on the code, please send an [email to me](mailto:s.mostafa.a96@gmail.com?subject=[GitHub]%20LUNA16%20grt123).
-# Till now
-## Preprocess steps:
+# Directory description
+## Prepare
+I have written the code of preparation in `prepare` and it contains almost all data pre-processing and augmentation steps of [their paper](https://arxiv.org/abs/1711.08324).
 
-The image bellow shows how these steps can be done.
+### To understand what is going on inside prepare directory:
+I have made a jupyter notebook for pre-processing [here](./notebooks/Preprocessor.ipynb)
+It is like a tutorial which I have tried to cover all of the works done in the `prepare._ct_scan.CTScan.preprocess` method and the main reference (the paper).
 
-* Convert the original 3d image into a binary image. (image: 1)
-* Remove the blobs connected to the border of the image. (image: 2)
-* Label the connected points of the image. (image: 3)
-* Keep the labels with 2 largest areas and segment two lungs. (image: 4)
-* Fill in the small holes inside the mask of lungs which we seperate right and left lung. (images: 5, 6)
-* Fill convex hull of each lung. (images: 7, 8)
-* Joint two separated right and left lungs. (image: 9)
-* Closure operation with a disk of radius 10. This operation is to keep nodules attached to the lung wall. (image: 10)
-* Superimpose the binary mask on the input image. (image: 11)
+Also for the data augmentation, there is another jupyter notebook [here](./notebooks/Augmentor.ipynb) which this one is tutorial-ish too. If you want to know how does the code generate augmented patches, I strongly recommend you to read it.
 
+## Model
+To understand the "Nodule Net", it would be best if you read the paper. 
+But for taking a brief look at the network structure, you can look at the below image.
+Its code in `model/net.py` is a copy-paste of the grt123 code with minor changes.
+Also, loss computation at `model/loss.py` is an IOU approach, to know the details you can read their paper.
 
-![preprocess](./preprocess.png)
+![Net](./notebooks/figs/net.png)
 
-## Data augmentations steps:
-
-* Scaling the 3d image with a scale factor between 0.75 and 1.25 (their scale factor is between 0.8 and 1.15, I changed it for simplicity)
-* Random Cropping the 3d image which contains nodule in it. All details are the same as their paper.
-* 90 degrees rotation, based on different axes and flipping. All details are the same as their paper.
-
-This is a part of their paper which is related to data augmentation:
-
-`
-To overcome [the problem of being hard to work with 3d images], small 3D patches are extracted from the lung scans and input to the network individually. The size of the patch is 128×128×128×1 (Height×Length× Width×Channel, the same notation is used in what follows). Two kinds of patches are randomly selected. First, 70% of the inputs are selected so that they contain at least one nodule. Second, 30% of the inputs are cropped randomly from lung scans and may not contain any nodules. The latter kind of inputs ensures the coverage of enough negative samples.
-If a patch goes beyond the range of lung scans, it is padded with value 170, same as in the preprocessing step. The nodule targets are not necessarily located at the center of the patch but had a margin larger than 12 pixels from the boundary of the patch (except for a few nodules that are too large).
-Data augmentation is used to alleviate the over-fitting prob- lem. The patches are randomly left-right flipped and resized with a ratio between 0.8 and 1.15. `
-
-## Loading and training
-Loads the saved augmented data to a torch dataset and uses it to form a data loader and then feed the model as well as computing the loss. (the model and loss computing is pretty much their code with some minor changes)
+## Loading and Training
+In `main/dataset.py` I have written the `LunaDataSet` class which loads the saved augmented data to a torch `Dataset` and uses it to form a `DataLoader` and then feed the model as well as computing the loss.
 
 # How to use
-I am working on the code constantly these days, but if you need it before I clean it up, you first should change first 3 variables in `configs.py` file, then run `prepare/run.py`, and then run `main/train.py`.
-Keep in mind that I don't have cuda right now, so if you have cuda you should uncomment the parts which I have marked with <i><b>UNCOMMENT IF YOU HAVE CUDA</b></i>.
+1. Download the dataset from [here](http://academictorrents.com/collection/luna-lung-nodule-analysis-16---isbi-2016-challenge).
+**If you are just testing this code, it may be better to download just one subset of it because the volume of the data is too high to download. Keep in mind to download CSV files too.**
+Also, the dataset description is available [here](https://luna16.grand-challenge.org/data/).
+2. Change the first 3 variables in `configs.py` file
+
+3. Run `prepare/run.py`
+
+4. Run `main/train.py`
+Keep in mind that I don't have Cuda right now, so if you have Cuda you should uncomment the parts which I have marked with **UNCOMMENT IF YOU HAVE CUDA**.
