@@ -5,3 +5,4 @@ venv/
 /prepare/tmp
 .DS_Store
 notebooks/.ipynb_checkpoints
+__pycache__/
