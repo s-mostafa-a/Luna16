@@ -12,13 +12,14 @@ I hope it helps researchers.
 If you have any questions on the code, please send an [email to me](mailto:s.mostafa.a96@gmail.com?subject=[GitHub]%20LUNA16%20grt123).
 # Code description
 ## Prepare
-I have written the code of preparation in `prepare` and it contains almost all data pre-processing and augmentation steps of [their paper](https://arxiv.org/abs/1711.08324).
+I have written the code of preparation in the `prepare` directory, it contains almost all data pre-processing and augmentation steps of [their paper](https://arxiv.org/abs/1711.08324).
 
-### To understand what is going on inside prepare directory:
+### Tutorials:
 I have made a jupyter notebook for pre-processing [here](./notebooks/Preprocessor.ipynb)
 It is like a tutorial which I have tried to cover all of the works done in the `prepare._ct_scan.CTScan.preprocess` method and the main reference (the paper).
 
-Also for the data augmentation, there is another jupyter notebook [here](./notebooks/Augmentor.ipynb) which this one is tutorial-ish too. If you want to know how does the code generate augmented patches, I strongly recommend you to read it.
+Also for the data augmentation, there is another jupyter notebook [here](./notebooks/Augmentor.ipynb) which this one is tutorial-ish too. 
+If you want to know how does the code generate augmented patches, I strongly recommend you to read it.
 
 ## Model
 To understand the "Nodule Net", it would be best if you read the paper. 
@@ -33,11 +34,11 @@ In `main/dataset.py` I have written the `LunaDataSet` class which loads the save
 
 # How to use
 1. Download the dataset from [here](http://academictorrents.com/collection/luna-lung-nodule-analysis-16---isbi-2016-challenge).
-**If you are just testing this code, it may be better to download just one subset of it because the volume of the data is too high to download. Keep in mind to download CSV files too.**
-Also, the dataset description is available [here](https://luna16.grand-challenge.org/data/).
+**If you are just testing this code, it may be better to download just one subset of it because the volume of the data is too high to download. You should download CSV files too.**
+Also, for more information, the dataset description is available [here](https://luna16.grand-challenge.org/data/).
 2. Change the first 3 variables in `configs.py` file
 
 3. Run `prepare/run.py`
 
 4. Run `main/train.py`
-Keep in mind that I don't have Cuda right now, so if you have Cuda you should uncomment the parts which I have marked with **UNCOMMENT IF YOU HAVE CUDA**.
+Keep in mind that I don't have Cuda and GPU right now, so if you have Cuda you should uncomment the parts which I have marked with **UNCOMMENT IF YOU HAVE CUDA**. (it probably works, please contact to me if it didn't)
