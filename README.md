@@ -34,7 +34,7 @@ In `main/dataset.py` I have written the `LunaDataSet` class which loads the save
 
 # How to use
 1. Download the dataset from [here](http://academictorrents.com/collection/luna-lung-nodule-analysis-16---isbi-2016-challenge).
-**If you are just testing this code, it may be better to download just one subset of it because the volume of the data is too high to download. You should download CSV files too.**
+**If you are just testing this code, it may be better to download just one subset of it because the size of the dataset is too large to download. You should download CSV files too.**
 Also, for more information, the dataset description is available [here](https://luna16.grand-challenge.org/data/).
 2. Change the first 3 variables in `configs.py` file
 
