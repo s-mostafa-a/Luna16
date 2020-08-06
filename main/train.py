@@ -4,7 +4,7 @@ import time
 import os
 from model.net import Net
 from model.loss import Loss
-# from torch.autograd import Variable
+from torch.autograd import Variable
 import itertools
 import pandas as pd
 from main.dataset import LunaDataSet
@@ -32,10 +32,10 @@ def train(data_loader, net, loss, epoch, optimizer, get_lr, save_dir='./models/'
 
     metrics = []
     for i, (data, target, coord) in enumerate(data_loader):
-        # UNCOMMENT IF YOU HAVE CUDA, I dont have gpu, so these lines should be commented
-        # data = Variable(data.cuda())
-        # target = Variable(target.cuda())
-        # coord = Variable(coord.cuda())
+        if torch.cuda.is_available():
+            data = Variable(data.cuda())
+            target = Variable(target.cuda())
+            coord = Variable(coord.cuda())
         data = data.float()
         target = target.float()
         coord = coord.float()
@@ -78,10 +78,10 @@ def validate(data_loader, net, loss):
 
     metrics = []
     for i, (data, target, coord) in enumerate(data_loader):
-        # UNCOMMENT IF YOU HAVE CUDA, I dont have gpu, so these lines should be commented
-        # data = Variable(data.cuda())
-        # target = Variable(target.cuda())
-        # coord = Variable(coord.cuda())
+        if torch.cuda.is_available():
+            data = Variable(data.cuda())
+            target = Variable(target.cuda())
+            coord = Variable(coord.cuda())
         data = data.float()
         target = target.float()
         coord = coord.float()
@@ -103,6 +103,9 @@ def validate(data_loader, net, loss):
 if __name__ == '__main__':
     neural_net = Net()
     loss_fn = Loss()
+    if torch.cuda.is_available():
+        neural_net = neural_net.cuda()
+        loss_fn = loss_fn.cuda()
     optim = torch.optim.SGD(
         neural_net.parameters(),
         DEFAULT_LR,

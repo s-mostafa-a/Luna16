@@ -41,4 +41,3 @@ Also, for more information, the dataset description is available [here](https://
 3. Run `prepare/run.py`
 
 4. Run `main/train.py`
-Keep in mind that I don't have Cuda and GPU right now, so if you have Cuda you should uncomment the parts which I have marked with **UNCOMMENT IF YOU HAVE CUDA**. (it probably works, please contact to me if it didn't)
