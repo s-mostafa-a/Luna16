@@ -41,3 +41,9 @@ Also, for more information, the dataset description is available [here](https://
 3. Run `prepare/run.py`
 
 4. Run `main/train.py`
+
+### Using google colab
+I have gone through the process of training the model with a [little sample of data](https://drive.google.com/file/d/1QOSRnUiwp08AFYOFgrCWJrEEEckZG1_0/view?usp=sharing) using google colab [here](./notebooks/Sample_of_training_process_with_google_colab.ipynb).
+For running the notebook, first, you should copy the data to your google drive, then click on "run all" in the notebook.
+
+It may be a little bit dirty, but it works for now. :)
