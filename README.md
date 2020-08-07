@@ -1,40 +1,39 @@
 # LUNA16 object detection
-In this repository, I have tried to develop a readable documented code for Lung Nodule Detection. (Based on the approach of the team "[grt123](https://github.com/lfz/DSB2017)" which stood on the first place of [DSB2017](https://www.kaggle.com/c/data-science-bowl-2017/leaderboard))
+Developing a well-documented repository for the Lung Nodule Detection task on the Luna16 dataset. This work is inspired by the ideas of the first-placed team at [DSB2017](https://www.kaggle.com/c/data-science-bowl-2017), "[grt123](https://github.com/lfz/DSB2017)".
+<hr>
+Lung cancer is the most common cancer in the world. More people die as a result of lung cancer each year than from breast, colorectal, and prostate cancer combined.
+Lung nodule detection is an important process in detecting lung cancer. Lots of work has been done in providing a robust model, however, there isn't an exact solution by now. 
 
-Their code (except for their model) was not readable to me at all, hence I have gone through [their paper](https://arxiv.org/abs/1711.08324).
-And it is normal for their repository not to be readable, because it is originally coded for a competition! So there is no blame on them. :)
+The [Data Science Bowl](https://datasciencebowl.com) (or DSB in short) is the world's premier data science for social good competition, created in 2014 and presented by Booz Allen Hamilton and Kaggle. The Data Science Bowl brings together data scientists, technologists, and domain experts across industries to take on the world's challenges with data and technology.
+In DSB2017, the competition was held to find lung nodules. Team grt123 came up with [the best results](https://www.kaggle.com/c/data-science-bowl-2017/leaderboard) by implementing a 3d UNet based YOLO. At this repository, I'm going to attack the problem inspired by their approach and provide a better result in some cases. Furthermore, I'm going to make it well documented to enrich the literature.
 
+Making their implementation working on every GPU configurations (even no GPU!), changing the data pre-processing, and augmentation from a big monotonic code into two stages are my first goals.
+Mainly I have gone through [their paper](https://arxiv.org/abs/1711.08324).
+I hope it helps researchers. If you have any questions on the code, please send an [email to me](mailto:s.mostafa.a96@gmail.com?subject=[GitHub]%20LUNA16%20grt123).
 
-Their code can not be used without GPU.
-Also, another disadvantage of their code is that they use data pre-processing and augmentation at the training time, I have decoupled the preprocess and augmentation from training.
-
-I hope it helps researchers.
-If you have any questions on the code, please send an [email to me](mailto:s.mostafa.a96@gmail.com?subject=[GitHub]%20LUNA16%20grt123).
 # Code description
 ## Prepare
-I have written the code of preparation in the `prepare` directory, it contains almost all data pre-processing and augmentation steps of [their paper](https://arxiv.org/abs/1711.08324).
+The preparation code is implemented in the `prepare` package, including pre-processing and augmentation.
 
 ### Tutorials:
-I have made a jupyter notebook for pre-processing [here](./notebooks/Preprocessor.ipynb)
-It is like a tutorial which I have tried to cover all of the works done in the `prepare._ct_scan.CTScan.preprocess` method and the main reference (the paper).
-
-Also for the data augmentation, there is another jupyter notebook [here](./notebooks/Augmentor.ipynb) which this one is tutorial-ish too. 
-If you want to know how does the code generate augmented patches, I strongly recommend you to read it.
+There is a [jupyter notebook as a tutorial](./notebooks/Preprocessor.ipynb), covering the pre-processing steps. 
+Take a look at the `prepare._ct_scan.CTScan.preprocess` method. 
+Also, there is another [jupyter notebook tutorial](./notebooks/Augmentor.ipynb) explaining the augmentation techniques of the method `prepare._ct_scan.CTScan.get_augmented_subimage`, 
+which is strongly recommended to review.
 
 ## Model
-To understand the "Nodule Net", it would be best if you read the paper. 
-But for taking a brief look at the network structure, you can look at the below image.
-Its code in `model/net.py` is a copy-paste of the grt123 code with minor changes.
+In order to have a good image of the "Nodule Net", you could study [the paper]!
+The below image shows the network structure. 
+Its code is in model package mostly the same as the original version of the code.
 Also, loss computation at `model/loss.py` is an IOU approach, to know the details you can read their paper.
-
 ![Net](./notebooks/figs/net.png)
 
 ## Main
-In `main/dataset.py` I have written the `LunaDataSet` class which loads the saved augmented data to a torch `Dataset` and uses it to form a `DataLoader` and then feed the model as well as computing the loss.
+The `LunaDataSet` class in `main/dataset.py`, loads the saved augmented data to a torch `Dataset` and uses it to form a `DataLoader` and then feed the model as well as computing the loss.
 
 # How to use
-1. Download the dataset from [here](http://academictorrents.com/collection/luna-lung-nodule-analysis-16---isbi-2016-challenge).
-**If you are just testing this code, it may be better to download just one subset of it because the size of the dataset is too large to download. You should download CSV files too.**
+1. Download the Luna16 dataset from [here](http://academictorrents.com/collection/luna-lung-nodule-analysis-16---isbi-2016-challenge).
+**There is also a small version of the dataset just for testing which is available in my google drive [here](https://drive.google.com/file/d/1QOSRnUiwp08AFYOFgrCWJrEEEckZG1_0/view?usp=sharing), it is because the size of the original dataset is too large to download.**
 Also, for more information, the dataset description is available [here](https://luna16.grand-challenge.org/data/).
 2. Change the first 3 variables in `configs.py` file
 
@@ -43,6 +42,5 @@ Also, for more information, the dataset description is available [here](https://
 4. Run `main/train.py`
 
 ### Using google colab
-I have gone through the process of training the model with a [little sample of data](https://drive.google.com/file/d/1QOSRnUiwp08AFYOFgrCWJrEEEckZG1_0/view?usp=sharing) using google colab [here](./notebooks/Sample_of_training_process_with_google_colab.ipynb).
-For running the notebook, first, you should copy the data to your google drive, then click on "run all" in the notebook.
-The scripts in this notebook may look a little bit dirty, but it works for now. :)
+The model has been trained in some small epochs by a [small sample](https://drive.google.com/file/d/1QOSRnUiwp08AFYOFgrCWJrEEEckZG1_0/view?usp=sharing) on google colab infrastructure.
+You could simply copy the data to your own Google Drive account and run it to learn the procedure of training the model using google colab!
