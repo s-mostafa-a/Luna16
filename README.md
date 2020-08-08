@@ -43,4 +43,4 @@ Also, for more information, the dataset description is available [here](https://
 
 ### Using google colab
 The model has been trained in some small epochs by a [small sample](https://drive.google.com/file/d/1QOSRnUiwp08AFYOFgrCWJrEEEckZG1_0/view?usp=sharing) on google colab infrastructure.
-You could simply copy the data to your own Google Drive account and run it to learn the procedure of training the model using google colab!
+You could simply copy the data to your own Google Drive account and run [this notebook](./notebooks/Sample_of_training_process_with_google_colab.ipynb) to learn the procedure of training the model using google colab!
