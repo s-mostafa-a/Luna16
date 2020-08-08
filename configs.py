@@ -1,10 +1,25 @@
 # some directory for output the results:
 OUTPUT_PATH = '/Users/mostafa/PycharmProjects/Luna/prepare/tmp'
 
-# resource path which contains: annotations.csv, candidates.csv, and [subset0]
+# Resource path which contains: annotations.csv, candidates.csv,
+# and subdirectories containing .mhd files.
+# This is the directory structure needed to run the code:
+# (The code will use all .mhd and .raw files inside subdirectories which their name is in annotations or candidates)
+'''
+[RESOURCES_PATH]/
+            annotations.csv
+            candidates.csv
+            subset0/
+                        *.mhd
+                        *.raw
+            subset1/
+                        *.mhd
+                        *.raw
+            my_custom_subset/
+                        *.mhd
+                        *.raw
+'''
 RESOURCES_PATH = '/Users/mostafa/Desktop/dsb_analyse/input'
-# if you downloaded all subsets, put their files in one directory and change the following variable to its name
-SUB_DIRECTORY = '/subset0/'
 
 
 

@@ -2,14 +2,16 @@ import scipy.misc
 import numpy as np
 import SimpleITK as sitk
 from prepare.utility import get_segmented_lungs, get_augmented_cube
-from configs import RESOURCES_PATH, SUB_DIRECTORY
+from configs import RESOURCES_PATH
+from glob import glob
 
 
 class CTScan(object):
     def __init__(self, filename, coords, radii):
         self._filename = filename
         self._coords = coords
-        path = RESOURCES_PATH + SUB_DIRECTORY + self._filename + '.mhd'
+        paths = glob(f'''{RESOURCES_PATH}/*/{self._filename}.mhd''')
+        path = paths[0]
         self._ds = sitk.ReadImage(path)
         self._spacing = np.array(list(reversed(self._ds.GetSpacing())))
         self._origin = np.array(list(reversed(self._ds.GetOrigin())))

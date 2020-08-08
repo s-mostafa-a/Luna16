@@ -35,7 +35,7 @@ The `LunaDataSet` class in `main/dataset.py`, loads the saved augmented data to 
 1. Download the Luna16 dataset from [here](http://academictorrents.com/collection/luna-lung-nodule-analysis-16---isbi-2016-challenge).
 **There is also a small version of the dataset just for testing which is available in my google drive [here](https://drive.google.com/file/d/1QOSRnUiwp08AFYOFgrCWJrEEEckZG1_0/view?usp=sharing), it is because the size of the original dataset is too large to download.**
 Also, for more information, the dataset description is available [here](https://luna16.grand-challenge.org/data/).
-2. Change the first 3 variables in `configs.py` file
+2. Change the first 2 variables in `configs.py` file
 
 3. Run `prepare/run.py`
 
