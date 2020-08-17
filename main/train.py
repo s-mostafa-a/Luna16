@@ -1,3 +1,5 @@
+import random
+
 import torch
 import numpy as np
 import time
@@ -128,7 +130,7 @@ with learning rate starting from: {get_lr(starting_epoch)}, and loss: {initial_l
     meta = pd.read_csv(f'{OUTPUT_PATH}/meta.csv', index_col=0).sample(frac=1).reset_index(drop=True)
     meta_group_by_series = meta.groupby(['seriesuid']).indices
     list_of_groups = [{i: list(meta_group_by_series[i])} for i in meta_group_by_series.keys()]
-    np.random.shuffle(list_of_groups)
+    random.Random(0).shuffle(list_of_groups)
     val_split = int(VAL_PCT * len(list_of_groups))
     val_indices = list(itertools.chain(*[list(i.values())[0] for i in list_of_groups[:val_split]]))
     train_indices = list(itertools.chain(*[list(i.values())[0] for i in list_of_groups[val_split:]]))
