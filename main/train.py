@@ -9,7 +9,8 @@ import itertools
 import pandas as pd
 from main.dataset import LunaDataSet
 from torch.utils.data import DataLoader
-from configs import VAL_PCT, TOTAL_EPOCHS, DEFAULT_LR, OUTPUT_PATH
+from configs import VAL_PCT, TOTAL_EPOCHS, DEFAULT_LR, OUTPUT_PATH, RESOURCES_PATH
+from glob import glob
 
 
 def get_lr(epoch):
@@ -49,18 +50,19 @@ def train(data_loader, net, loss, epoch, optimizer, get_lr, save_dir='./models/'
         loss_output[0] = loss_output[0].item()
         metrics.append(loss_output)
         break
+    metrics = np.asarray(metrics, np.float32)
     if epoch % 10 == 0:
-        state_dict = net.state_dict()
-        for key in state_dict.keys():
-            state_dict[key] = state_dict[key].cpu()
+        net_state_dict = net.state_dict()
+        for key in net_state_dict.keys():
+            net_state_dict[key] = net_state_dict[key].cpu()
         torch.save({
             'epoch': epoch,
             'save_dir': save_dir,
-            'state_dict': state_dict}, os.path.join(save_dir, f'''{epoch}.ckpt'''))
+            'model_state_dict': net_state_dict,
+            'optimizer_state_dict': optimizer.state_dict(),
+            'loss': np.mean(metrics[:, 0])}, os.path.join(save_dir, f'''{epoch}.ckpt'''))
 
     end_time = time.time()
-
-    metrics = np.asarray(metrics, np.float32)
     print(f'''Epoch {epoch} (lr {lr})''')
     print(f'''Train: tpr {100.0 * np.sum(metrics[:, 6]) / np.sum(metrics[:, 7])},
             tnr {100.0 * np.sum(metrics[:, 8]) / np.sum(metrics[:, 9])}, 
@@ -100,17 +102,29 @@ def validate(data_loader, net, loss):
             {np.mean(metrics[:, 4])}, {np.mean(metrics[:, 5])}''')
 
 
-if __name__ == '__main__':
+def run(load_last_checkpoint=False):
+    save_dir = f'{OUTPUT_PATH}/models/'
+    os.makedirs(save_dir, exist_ok=True)
     neural_net = Net()
     loss_fn = Loss()
+    optim = torch.optim.SGD(neural_net.parameters(), DEFAULT_LR, momentum=0.9, weight_decay=1e-4)
+    starting_epoch = 0
+    initial_loss = 1
+    if load_last_checkpoint:
+        model_paths = glob(f'''{save_dir}*.ckpt''')
+        model_names = [int(i.split('/')[-1][:-5]) for i in model_paths]
+        latest_model_path = f'''{save_dir}{max(model_names)}.ckpt'''
+        print('loading latest model from:', latest_model_path)
+        checkpoint = torch.load(latest_model_path)
+        neural_net.load_state_dict(checkpoint['model_state_dict'])
+        optim.load_state_dict(checkpoint['optimizer_state_dict'])
+        starting_epoch = checkpoint['epoch']
+        initial_loss = checkpoint['loss']
     if torch.cuda.is_available():
         neural_net = neural_net.cuda()
         loss_fn = loss_fn.cuda()
-    optim = torch.optim.SGD(
-        neural_net.parameters(),
-        DEFAULT_LR,
-        momentum=0.9,
-        weight_decay=1e-4)
+    print(f'''Training from epoch: {starting_epoch} towards: {TOTAL_EPOCHS},
+with learning rate starting from: {get_lr(starting_epoch)}, and loss: {initial_loss}''')
     meta = pd.read_csv(f'{OUTPUT_PATH}/meta.csv', index_col=0).sample(frac=1).reset_index(drop=True)
     meta_group_by_series = meta.groupby(['seriesuid']).indices
     list_of_groups = [{i: list(meta_group_by_series[i])} for i in meta_group_by_series.keys()]
@@ -123,8 +137,10 @@ if __name__ == '__main__':
     train_loader = DataLoader(ltd, batch_size=1, shuffle=False)
     val_loader = DataLoader(lvd, batch_size=1, shuffle=False)
 
-    save_dir = f'{OUTPUT_PATH}/models/'
-    os.makedirs(save_dir, exist_ok=True)
-    for ep in range(TOTAL_EPOCHS):
+    for ep in range(starting_epoch, TOTAL_EPOCHS):
         train(train_loader, neural_net, loss_fn, ep, optim, get_lr, save_dir=save_dir)
         validate(val_loader, neural_net, loss_fn)
+
+
+if __name__ == '__main__':
+    run(load_last_checkpoint=False)
