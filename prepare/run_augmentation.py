@@ -1,13 +1,8 @@
-from prepare._classes import CTScan, PatchMaker
+from prepare._classes import PatchMaker
 import pandas as pd
-import numpy as np
-from glob import glob
 import os
-from configs import OUTPUT_PATH, RESOURCES_PATH
+from configs import OUTPUT_PATH
 from ast import literal_eval
-
-annotations = pd.read_csv(RESOURCES_PATH + '/annotations.csv')
-candidates = pd.read_csv(RESOURCES_PATH + '/candidates.csv')
 
 
 def _get_patches(record):
@@ -36,10 +31,11 @@ def save_augmented_data(preprocess_meta):
         list_of_positives += _get_patches(rec)
     for rec in preprocess_meta.loc[preprocess_meta['class'] == 0].iloc:
         list_of_negatives += _get_patches(rec)
+        # 33 percent of the data will be negative samples
         if len(list_of_negatives) > len(list_of_positives) / 2:
             break
     augmentation_meta = augmentation_meta.append(list_of_positives + list_of_negatives)
-    augmentation_meta.to_csv(f'{OUTPUT_PATH}/augmentation_meta.csv')
+    augmentation_meta.to_csv(f'{OUTPUT_PATH}/augmented_meta.csv')
 
 
 if __name__ == '__main__':
