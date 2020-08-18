@@ -27,7 +27,8 @@ class CTScan(object):
         self._change_coords()
 
     def get_preprocessed_info_dict(self):
-        return {'seriesuid': self._seriesuid, 'radii': self._radii, 'centers': self._coords, 'spacing': self._spacing}
+        return {'seriesuid': self._seriesuid, 'radii': self._radii, 'centers': self._coords,
+                'spacing': list(self._spacing)}
 
     def get_ds(self):
         return self._ds
@@ -92,15 +93,39 @@ class CTScan(object):
 
 
 class PatchMaker(object):
-    def __init__(self, seriesuid, coords, radii, spacing, file_path, mask_path, clazz):
+    def __init__(self, seriesuid: str, coords: list, radii: list, spacing: list, file_path: str, mask_path: str,
+                 clazz: int):
         self._seriesuid = seriesuid
         self._coords = coords
         self._spacing = spacing
         self._radii = radii
-        self._image = np.load(file=f'{OUTPUT_PATH}{file_path}')
-        self._mask = np.load(file=f'{OUTPUT_PATH}{mask_path}')
+        self._image = np.load(file=f'{file_path}')
+        self._mask = np.load(file=f'{mask_path}')
         self._clazz = clazz
 
-    def get_augmented_subimage(self, idx, rot_id=None):
+    def _get_augmented_patch(self, idx, rot_id=None):
         return get_augmented_cube(img=self._image, radii=self._radii, centers=self._coords,
                                   spacing=tuple(self._spacing), rot_id=rot_id, main_nodule_idx=idx)
+
+    def get_augmented_patches(self):
+        radii = self._radii
+        list_of_dicts = []
+        for i in range(len(self._coords)):
+            times_to_sample = 1
+            if radii[i] > 15.:
+                times_to_sample = 2
+            elif radii[i] > 20.:
+                times_to_sample = 6
+            for j in range(times_to_sample):
+                rot_id = int((j / times_to_sample) * 24 + np.random.randint(0, int(24 / times_to_sample)))
+                img, radii2, centers, spacing, existing_nodules_in_patch = self._get_augmented_patch(idx=i,
+                                                                                                     rot_id=rot_id)
+                existing_radii = [radii2[i] for i in existing_nodules_in_patch]
+                existing_centers = [centers[i] for i in existing_nodules_in_patch]
+                subdir = 'negatives' if self._clazz == 0 else 'positives'
+                file_path = f'''augmented/{subdir}/{self._seriesuid}_{i}_{j}.npy'''
+                list_of_dicts.append(
+                    {'seriesuid': self._seriesuid, 'file_path': file_path, 'centers': existing_centers,
+                     'radii': existing_radii, 'class': self._clazz})
+                np.save(f'{OUTPUT_PATH}/{file_path}', img)
+        return list_of_dicts
