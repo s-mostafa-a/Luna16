@@ -41,7 +41,7 @@ class CTScan(object):
         min_point = (min_z, min_y, min_x)
         max_point = (max_z, max_y, max_x)
         return {'seriesuid': self._seriesuid, 'radii': self._radii, 'centers': self._centers,
-                'spacing': list(self._spacing), 'bounding_box': [min_point, max_point], 'class': self._clazz}
+                'spacing': list(self._spacing), 'lungs_bounding_box': [min_point, max_point], 'class': self._clazz}
 
     def _resample(self):
         spacing = np.array(self._spacing, dtype=np.float32)
@@ -94,7 +94,8 @@ class CTScan(object):
 
 
 class PatchMaker(object):
-    def __init__(self, seriesuid: str, coords: list, radii: list, spacing: list, bounding_box: list, file_path: str,
+    def __init__(self, seriesuid: str, coords: list, radii: list, spacing: list, lungs_bounding_box: list,
+                 file_path: str,
                  clazz: int):
         self._seriesuid = seriesuid
         self._coords = coords
@@ -102,12 +103,12 @@ class PatchMaker(object):
         self._radii = radii
         self._image = np.load(file=f'{file_path}')
         self._clazz = clazz
-        self._bounding_box = bounding_box
+        self._lungs_bounding_box = lungs_bounding_box
 
     def _get_augmented_patch(self, idx, rot_id=None):
         return get_augmented_cube(img=self._image, radii=self._radii, centers=self._coords,
                                   spacing=tuple(self._spacing), rot_id=rot_id, main_nodule_idx=idx,
-                                  bounding_box=self._bounding_box)
+                                  lungs_bounding_box=self._lungs_bounding_box)
 
     def get_augmented_patches(self):
         radii = self._radii
@@ -120,7 +121,7 @@ class PatchMaker(object):
                 times_to_sample = 6
             for j in range(times_to_sample):
                 rot_id = int((j / times_to_sample) * 24 + np.random.randint(0, int(24 / times_to_sample)))
-                img, radii2, centers, bounding_box, spacing, existing_nodules_in_patch = self._get_augmented_patch(
+                img, radii2, centers, lungs_bounding_box, spacing, existing_nodules_in_patch = self._get_augmented_patch(
                     idx=i, rot_id=rot_id)
                 existing_radii = [radii2[i] for i in existing_nodules_in_patch]
                 existing_centers = [centers[i] for i in existing_nodules_in_patch]
@@ -128,6 +129,6 @@ class PatchMaker(object):
                 file_path = f'''augmented/{subdir}/{self._seriesuid}_{i}_{j}.npy'''
                 list_of_dicts.append(
                     {'seriesuid': self._seriesuid, 'centers': existing_centers,
-                     'bounding_box': bounding_box, 'radii': existing_radii, 'class': self._clazz})
+                     'lungs_bounding_box': lungs_bounding_box, 'radii': existing_radii, 'class': self._clazz})
                 np.save(f'{OUTPUT_PATH}/{file_path}', img)
         return list_of_dicts

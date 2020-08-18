@@ -29,7 +29,7 @@ def _get_negative_series():
 def save_preprocessed_data():
     [os.makedirs(d, exist_ok=True) for d in
      [f'{OUTPUT_PATH}/preprocessed/positives', f'{OUTPUT_PATH}/preprocessed/negatives']]
-    meta_data = pd.DataFrame(columns=['seriesuid', 'spacing', 'bounding_box', 'centers', 'radii', 'class'])
+    meta_data = pd.DataFrame(columns=['seriesuid', 'spacing', 'lungs_bounding_box', 'centers', 'radii', 'class'])
     for series_id in _get_positive_series():
         nodule_coords_annot = annotations[annotations['seriesuid'] == series_id]
         tp_co = [(a['coordZ'], a['coordY'], a['coordX']) for a in nodule_coords_annot.iloc]
