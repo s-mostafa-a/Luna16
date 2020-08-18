@@ -59,7 +59,8 @@ def _get_cube_from_img_new(img, origin: tuple, block_size=128, pad_value=106.):
     return result
 
 
-def random_crop(img: np.array, centers: list, radii: list, main_nodule_idx: int, spacing: tuple, block_size: int,
+def random_crop(img: np.array, centers: list, bounding_box: list, radii: list, main_nodule_idx: int, spacing: tuple,
+                block_size: int,
                 pad_value: float, margin: int):
     max_radius_index = np.max(np.round(radii[main_nodule_idx] / np.array(spacing)).astype(int))
     center_of_cube = list(centers[main_nodule_idx])
@@ -74,11 +75,17 @@ def random_crop(img: np.array, centers: list, radii: list, main_nodule_idx: int,
         shifts.append(shift)
     out_img = _get_cube_from_img_new(img, origin=tuple(center_of_cube), block_size=block_size, pad_value=pad_value)
     out_centers = []
+    out_bounding_box = []
     for i in range(len(centers)):
         diff = np.array(centers[main_nodule_idx]) - np.array(centers[i])
         out_centers.append(
             tuple(np.array([int(block_size / 2)] * len(centers[i]), dtype=int) - np.array(shifts, dtype=int) - diff))
-    return out_img, out_centers
+    for i in range(len(bounding_box)):
+        diff = np.array(centers[main_nodule_idx]) - np.array(bounding_box[i])
+        out_bounding_box.append(tuple(
+            np.array([int(block_size / 2)] * len(bounding_box[i]), dtype=int) - np.array(shifts, dtype=int) - diff))
+
+    return out_img, out_centers, out_bounding_box
 
 
 def _get_point_after_2d_rotation(in_points: list, shape: tuple, rot90s: int, flip: bool = False):
@@ -116,7 +123,7 @@ def _get_point_after_3d_rotation(in_points: list, shape: tuple, axes, rot90s: in
     return result_points
 
 
-def rotate(img: np.array, spacing: tuple, centers: list, rotate_id: int):
+def rotate(img: np.array, spacing: tuple, centers: list, bounding_box: list, rotate_id: int):
     spacing = list(spacing)
     dimensions = len(img.shape)
     assert (dimensions == 3 and rotate_id < 24) or (dimensions == 2 and rotate_id < 8)
@@ -124,11 +131,11 @@ def rotate(img: np.array, spacing: tuple, centers: list, rotate_id: int):
 
     if dimensions == 2:
         axis = [0]
-        out_centers = partial(_get_point_after_2d_rotation, in_points=centers, shape=tuple(img.shape))
+        out_points = partial(_get_point_after_2d_rotation, shape=tuple(img.shape))
     else:  # dimensions == 3
         axis = rotate_id // 8
         other_axes.pop(axis)
-        out_centers = partial(_get_point_after_3d_rotation, in_points=centers, shape=tuple(img.shape), axes=other_axes)
+        out_points = partial(_get_point_after_3d_rotation, shape=tuple(img.shape), axes=other_axes)
 
     which_rotation = rotate_id % 8
     flip = which_rotation >= 4
@@ -147,26 +154,29 @@ def rotate(img: np.array, spacing: tuple, centers: list, rotate_id: int):
     img = np.rot90(img, k=rotation_times, axes=other_axes)
     if flip:
         img = np.flip(img, axis=axis)
-    return img, tuple(spacing), out_centers(rot90s=rotation_times, flip=flip)
+    return img, tuple(spacing), out_points(in_points=centers, rot90s=rotation_times, flip=flip), out_points(
+        in_points=bounding_box, rot90s=rotation_times, flip=flip)
 
 
-def scale(img: np.array, scale_factor: float, spacing: tuple, centers: list, radii: list):
+def scale(img: np.array, scale_factor: float, spacing: tuple, centers: list, bounding_box: list, radii: list):
     assert (.75 <= scale_factor <= 1.25)
     out_centers = [tuple(np.rint(np.array(c) * scale_factor).astype(int)) for c in centers]
+    out_bounding_box = [tuple(np.rint(np.array(b) * scale_factor).astype(int)) for b in bounding_box]
     out_radii = [r * scale_factor for r in radii]
     spacing = np.array(spacing) * scale_factor
     img1 = scipy.ndimage.interpolation.zoom(img, spacing, mode='nearest')
-    return img1, tuple(spacing), out_centers, out_radii
+    return img1, tuple(spacing), out_centers, out_bounding_box, out_radii
 
 
-def get_augmented_cube(img: np.array, radii: list, centers: list, main_nodule_idx: int, spacing: tuple, block_size=128,
-                       pad_value=106, margin=10, rot_id=None):
+def get_augmented_cube(img: np.array, radii: list, centers: list, main_nodule_idx: int, spacing: tuple,
+                       bounding_box: list, block_size=128, pad_value=106, margin=10, rot_id=None):
     scale_factor = np.random.random() / 2 + .75
     rotate_id = np.random.randint(0, 24) if not rot_id else rot_id
-    img1, spacing1, centers1, radii1 = scale(img, scale_factor=scale_factor, spacing=spacing, centers=centers,
-                                             radii=radii)
-    img2, centers2 = random_crop(img=img1, centers=centers1, radii=radii1, main_nodule_idx=main_nodule_idx,
-                                 spacing=spacing1, block_size=block_size, pad_value=pad_value, margin=margin)
+    img1, spacing1, centers1, bounding_box1, radii1 = scale(img, scale_factor=scale_factor, spacing=spacing,
+                                                            centers=centers, bounding_box=bounding_box, radii=radii)
+    img2, centers2, bounding_box2 = random_crop(img=img1, centers=centers1, bounding_box=bounding_box1, radii=radii1,
+                                                main_nodule_idx=main_nodule_idx, spacing=spacing1,
+                                                block_size=block_size, pad_value=pad_value, margin=margin)
     existing_centers_in_patch = []
     for i in range(len(centers2)):
         dont_count = False
@@ -176,8 +186,9 @@ def get_augmented_cube(img: np.array, radii: list, centers: list, main_nodule_id
                 break
         if not dont_count:
             existing_centers_in_patch.append(i)
-    img3, spacing2, centers3 = rotate(img=img2, spacing=spacing1, centers=centers2, rotate_id=rotate_id)
-    return img3, radii1, centers3, spacing2, existing_centers_in_patch
+    img3, spacing2, centers3, bounding_box3 = rotate(img=img2, spacing=spacing1, centers=centers2,
+                                                     bounding_box=bounding_box2, rotate_id=rotate_id)
+    return img3, radii1, centers3, bounding_box3, spacing2, existing_centers_in_patch
 
 
 def get_segmented_lungs(im, plot=False):

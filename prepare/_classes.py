@@ -8,7 +8,7 @@ from skimage.measure import regionprops
 
 
 class CTScan(object):
-    def __init__(self, seriesuid, centers, radii, destination_directory, clazz):
+    def __init__(self, seriesuid, centers, radii, clazz):
         self._seriesuid = seriesuid
         self._centers = centers
         paths = glob(f'''{RESOURCES_PATH}/*/{self._seriesuid}.mhd''')
@@ -18,7 +18,6 @@ class CTScan(object):
         self._origin = np.array(list(reversed(self._ds.GetOrigin())))
         self._image = sitk.GetArrayFromImage(self._ds)
         self._radii = radii
-        self._destination_directory = destination_directory
         self._clazz = clazz
         self._mask = None
 
@@ -30,7 +29,9 @@ class CTScan(object):
         self._change_coords()
 
     def save_preprocessed_image(self):
-        np.save(f'{OUTPUT_PATH}/{self._destination_directory}/{self._seriesuid}.npy', self._image)
+        subdir = 'negatives' if self._clazz == 0 else 'positives'
+        file_path = f'''preprocessed/{subdir}/{self._seriesuid}.npy'''
+        np.save(f'{OUTPUT_PATH}/{file_path}', self._image)
 
     def get_info_dict(self):
         (min_z, min_y, min_x, max_z, max_y, max_x) = (None, None, None, None, None, None)
@@ -105,7 +106,8 @@ class PatchMaker(object):
 
     def _get_augmented_patch(self, idx, rot_id=None):
         return get_augmented_cube(img=self._image, radii=self._radii, centers=self._coords,
-                                  spacing=tuple(self._spacing), rot_id=rot_id, main_nodule_idx=idx)
+                                  spacing=tuple(self._spacing), rot_id=rot_id, main_nodule_idx=idx,
+                                  bounding_box=self._bounding_box)
 
     def get_augmented_patches(self):
         radii = self._radii
@@ -118,14 +120,14 @@ class PatchMaker(object):
                 times_to_sample = 6
             for j in range(times_to_sample):
                 rot_id = int((j / times_to_sample) * 24 + np.random.randint(0, int(24 / times_to_sample)))
-                img, radii2, centers, spacing, existing_nodules_in_patch = self._get_augmented_patch(idx=i,
-                                                                                                     rot_id=rot_id)
+                img, radii2, centers, bounding_box, spacing, existing_nodules_in_patch = self._get_augmented_patch(
+                    idx=i, rot_id=rot_id)
                 existing_radii = [radii2[i] for i in existing_nodules_in_patch]
                 existing_centers = [centers[i] for i in existing_nodules_in_patch]
                 subdir = 'negatives' if self._clazz == 0 else 'positives'
                 file_path = f'''augmented/{subdir}/{self._seriesuid}_{i}_{j}.npy'''
                 list_of_dicts.append(
-                    {'seriesuid': self._seriesuid, 'file_path': file_path, 'centers': existing_centers,
-                     'radii': existing_radii, 'class': self._clazz})
+                    {'seriesuid': self._seriesuid, 'centers': existing_centers,
+                     'bounding_box': bounding_box, 'radii': existing_radii, 'class': self._clazz})
                 np.save(f'{OUTPUT_PATH}/{file_path}', img)
         return list_of_dicts

@@ -34,9 +34,7 @@ def save_preprocessed_data():
         nodule_coords_annot = annotations[annotations['seriesuid'] == series_id]
         tp_co = [(a['coordZ'], a['coordY'], a['coordX']) for a in nodule_coords_annot.iloc]
         radii = [(a['diameter_mm'] / 2) for a in nodule_coords_annot.iloc]
-        destination_directory = f'preprocessed/positives'
-        ct = CTScan(seriesuid=series_id, centers=tp_co, radii=radii, destination_directory=destination_directory,
-                    clazz=1)
+        ct = CTScan(seriesuid=series_id, centers=tp_co, radii=radii, clazz=1)
         ct.preprocess()
         ct.save_preprocessed_image()
         diction = ct.get_info_dict()
@@ -48,9 +46,7 @@ def save_preprocessed_data():
         max_numbers_to_use = min(len(tp_co), 3)
         tp_co = tp_co[:max_numbers_to_use]
         radii = radii[:max_numbers_to_use]
-        destination_directory = f'preprocessed/negatives'
-        ct = CTScan(seriesuid=series_id, centers=tp_co, radii=radii, destination_directory=destination_directory,
-                    clazz=0)
+        ct = CTScan(seriesuid=series_id, centers=tp_co, radii=radii, clazz=0)
         ct.preprocess()
         ct.save_preprocessed_image()
         diction = ct.get_info_dict()
