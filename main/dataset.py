@@ -1,9 +1,8 @@
 from torch.utils.data import Dataset
 import pandas as pd
 from ast import literal_eval
-from copy import deepcopy
 import numpy as np
-from configs import BLOCK_SIZE, TARGET_SHAPE, COORDS_SHAPE, ANCHOR_SIZES, OUTPUT_PATH
+from configs import BLOCK_SIZE, TARGET_SHAPE, COORDS_SHAPE, ANCHOR_SIZES, OUTPUT_PATH, PADDING_FOR_LOCALIZATION
 
 
 class LunaDataSet(Dataset):
@@ -14,13 +13,13 @@ class LunaDataSet(Dataset):
     def __getitem__(self, idx, split=None):
         meta = self.meta_dataframe.iloc[self.indices[idx]]
         centers = literal_eval(meta['centers'])
-        clazz = int(meta['class'])
-        real_world_centers = literal_eval(meta['centers_in_original_image'])
         radii = literal_eval(meta['radii'])
-        file_path = f'''{OUTPUT_PATH}/{meta['file_path']}'''
+        clazz = int(meta['class'])
+        sub_dir = 'positives' if clazz == 1 else 'negatives'
+        file_path = f'''{OUTPUT_PATH}/augmented/{sub_dir}/{meta['seriesuid']}.npy'''
         patch = np.load(file_path)
         target = np.zeros(TARGET_SHAPE)
-        coords = np.zeros(COORDS_SHAPE)
+        coords = np.ones(COORDS_SHAPE) * PADDING_FOR_LOCALIZATION
         if clazz == 1:
             for c in range(len(centers)):
                 place = []
@@ -32,12 +31,6 @@ class LunaDataSet(Dataset):
                     place.append(centers[c][ax] // window)
                     point.append(centers[c][ax] % window)
 
-                point_for_coords = deepcopy(point)
-                # prepend sth to list
-                point_for_coords[:0] = [0]
-                for ax in range(len(patch.shape)):
-                    point_for_coords[0] = ax
-                    coords[tuple(point_for_coords)] = real_world_centers[c][ax]
                 if radii[c] <= ANCHOR_SIZES[0] / 2:
                     place.append(0)
                 elif radii[c] <= ANCHOR_SIZES[1] / 2:
@@ -56,13 +49,7 @@ class LunaDataSet(Dataset):
                     window = int(BLOCK_SIZE / TARGET_SHAPE[ax])
                     point.append(centers[c][ax] % window)
 
-                point_for_coords = deepcopy(point)
-                # prepend sth to list
-                point_for_coords[:0] = [0]
-                for ax in range(len(patch.shape)):
-                    point_for_coords[0] = ax
-                    coords[tuple(point_for_coords)] = real_world_centers[c][ax]
-        out_patch = patch[np.newaxis,]
+        out_patch = patch[np.newaxis, ]
         return out_patch, target, coords
 
     def __len__(self):
