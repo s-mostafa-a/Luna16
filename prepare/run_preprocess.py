@@ -28,24 +28,19 @@ def _get_negative_series():
 
 def save_preprocessed_data():
     [os.makedirs(d, exist_ok=True) for d in
-     [f'{OUTPUT_PATH}/preprocessed/positives', f'{OUTPUT_PATH}/preprocessed/negatives',
-      f'{OUTPUT_PATH}/preprocessed/mask']]
-    data = pd.DataFrame(columns=['seriesuid', 'file_directory', 'spacing', 'centers', 'radii', 'class'])
+     [f'{OUTPUT_PATH}/preprocessed/positives', f'{OUTPUT_PATH}/preprocessed/negatives']]
+    meta_data = pd.DataFrame(columns=['seriesuid', 'spacing', 'bounding_box', 'centers', 'radii', 'class'])
     for series_id in _get_positive_series():
         nodule_coords_annot = annotations[annotations['seriesuid'] == series_id]
         tp_co = [(a['coordZ'], a['coordY'], a['coordX']) for a in nodule_coords_annot.iloc]
         radii = [(a['diameter_mm'] / 2) for a in nodule_coords_annot.iloc]
-        ct = CTScan(seriesuid=series_id, coords=tp_co, radii=radii)
+        destination_directory = f'preprocessed/positives'
+        ct = CTScan(seriesuid=series_id, centers=tp_co, radii=radii, destination_directory=destination_directory,
+                    clazz=1)
         ct.preprocess()
-        file_directory = f'preprocessed/positives'
-        mask_directory = f'preprocessed/mask'
-        diction = ct.get_preprocessed_info_dict()
-        diction['mask_directory'] = mask_directory
-        diction['file_directory'] = file_directory
-        diction['class'] = 1
-        data = data.append(pd.Series(diction), ignore_index=True)
-        np.save(f'{OUTPUT_PATH}/{file_directory}/{series_id}.npy', ct.get_image())
-        np.save(f'{OUTPUT_PATH}/{mask_directory}/{series_id}.npy', ct.get_mask())
+        ct.save_preprocessed_image()
+        diction = ct.get_info_dict()
+        meta_data = meta_data.append(pd.Series(diction), ignore_index=True)
     for series_id in _get_negative_series():
         nodule_coords_candid = candidates[candidates['seriesuid'] == series_id]
         tp_co = [(a['coordZ'], a['coordY'], a['coordX']) for a in nodule_coords_candid.iloc]
@@ -53,18 +48,14 @@ def save_preprocessed_data():
         max_numbers_to_use = min(len(tp_co), 3)
         tp_co = tp_co[:max_numbers_to_use]
         radii = radii[:max_numbers_to_use]
-        ct = CTScan(seriesuid=series_id, coords=tp_co, radii=radii)
+        destination_directory = f'preprocessed/negatives'
+        ct = CTScan(seriesuid=series_id, centers=tp_co, radii=radii, destination_directory=destination_directory,
+                    clazz=0)
         ct.preprocess()
-        file_directory = f'preprocessed/negatives'
-        mask_directory = f'preprocessed/mask'
-        diction = ct.get_preprocessed_info_dict()
-        diction['mask_directory'] = mask_directory
-        diction['file_directory'] = file_directory
-        diction['class'] = 0
-        data = data.append(pd.Series(diction), ignore_index=True)
-        np.save(f'{OUTPUT_PATH}/{file_directory}/{series_id}.npy', ct.get_image())
-        np.save(f'{OUTPUT_PATH}/{mask_directory}/{series_id}.npy', ct.get_mask())
-    data.to_csv(f'{OUTPUT_PATH}/preprocessed_meta.csv')
+        ct.save_preprocessed_image()
+        diction = ct.get_info_dict()
+        meta_data = meta_data.append(pd.Series(diction), ignore_index=True)
+    meta_data.to_csv(f'{OUTPUT_PATH}/preprocessed_meta.csv')
 
 
 if __name__ == '__main__':

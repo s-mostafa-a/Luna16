@@ -22,7 +22,7 @@ OUTPUT_PATH = '/Users/mostafa/PycharmProjects/Luna/prepare/tmp'
 RESOURCES_PATH = '/Users/mostafa/Desktop/dsb_analyse/input'
 
 
-
+PADDING_FOR_LOCALIZATION = 10
 BLOCK_SIZE = 128
 TARGET_SHAPE = (32, 32, 32, 3, 5)
 COORDS_SHAPE = (3, 32, 32, 32)

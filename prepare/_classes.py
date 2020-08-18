@@ -4,12 +4,13 @@ import SimpleITK as sitk
 from prepare.utility import get_segmented_lungs, get_augmented_cube
 from configs import RESOURCES_PATH, OUTPUT_PATH
 from glob import glob
+from skimage.measure import regionprops
 
 
 class CTScan(object):
-    def __init__(self, seriesuid, coords, radii):
+    def __init__(self, seriesuid, centers, radii, destination_directory, clazz):
         self._seriesuid = seriesuid
-        self._coords = coords
+        self._centers = centers
         paths = glob(f'''{RESOURCES_PATH}/*/{self._seriesuid}.mhd''')
         path = paths[0]
         self._ds = sitk.ReadImage(path)
@@ -17,6 +18,8 @@ class CTScan(object):
         self._origin = np.array(list(reversed(self._ds.GetOrigin())))
         self._image = sitk.GetArrayFromImage(self._ds)
         self._radii = radii
+        self._destination_directory = destination_directory
+        self._clazz = clazz
         self._mask = None
 
     def preprocess(self):
@@ -26,21 +29,18 @@ class CTScan(object):
         self._zero_center()
         self._change_coords()
 
-    def get_preprocessed_info_dict(self):
-        return {'seriesuid': self._seriesuid, 'radii': self._radii, 'centers': self._coords,
-                'spacing': list(self._spacing)}
+    def save_preprocessed_image(self):
+        np.save(f'{OUTPUT_PATH}/{self._destination_directory}/{self._seriesuid}.npy', self._image)
 
-    def get_ds(self):
-        return self._ds
-
-    def get_image(self):
-        return self._image
-
-    def get_mask(self):
-        return self._mask
-
-    def get_coords(self):
-        return self._coords
+    def get_info_dict(self):
+        (min_z, min_y, min_x, max_z, max_y, max_x) = (None, None, None, None, None, None)
+        for region in regionprops(self._mask):
+            min_z, min_y, min_x, max_z, max_y, max_x = region.bbox
+        assert (min_z, min_y, min_x, max_z, max_y, max_x) != (None, None, None, None, None, None)
+        min_point = (min_z, min_y, min_x)
+        max_point = (max_z, max_y, max_x)
+        return {'seriesuid': self._seriesuid, 'radii': self._radii, 'centers': self._centers,
+                'spacing': list(self._spacing), 'bounding_box': [min_point, max_point], 'class': self._clazz}
 
     def _resample(self):
         spacing = np.array(self._spacing, dtype=np.float32)
@@ -69,15 +69,15 @@ class CTScan(object):
         return voxelCoord.astype(int)
 
     def _get_world_to_voxel_coords(self, idx):
-        return tuple(self._world_to_voxel(self._coords[idx]))
+        return tuple(self._world_to_voxel(self._centers[idx]))
 
     def _get_voxel_coords(self):
-        voxel_coords = [self._get_world_to_voxel_coords(j) for j in range(len(self._coords))]
+        voxel_coords = [self._get_world_to_voxel_coords(j) for j in range(len(self._centers))]
         return voxel_coords
 
     def _change_coords(self):
         new_coords = self._get_voxel_coords()
-        self._coords = new_coords
+        self._centers = new_coords
 
     def _normalize(self):
         MIN_BOUND = -1200
@@ -93,15 +93,15 @@ class CTScan(object):
 
 
 class PatchMaker(object):
-    def __init__(self, seriesuid: str, coords: list, radii: list, spacing: list, file_path: str, mask_path: str,
+    def __init__(self, seriesuid: str, coords: list, radii: list, spacing: list, bounding_box: list, file_path: str,
                  clazz: int):
         self._seriesuid = seriesuid
         self._coords = coords
         self._spacing = spacing
         self._radii = radii
         self._image = np.load(file=f'{file_path}')
-        self._mask = np.load(file=f'{mask_path}')
         self._clazz = clazz
+        self._bounding_box = bounding_box
 
     def _get_augmented_patch(self, idx, rot_id=None):
         return get_augmented_cube(img=self._image, radii=self._radii, centers=self._coords,
