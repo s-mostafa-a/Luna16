@@ -300,4 +300,4 @@ def get_segmented_lungs(im, plot=False):
         plots[plt_number].imshow(im, cmap=plt.cm.bone)
         plt_number += 1
 
-    return im
+    return im, convex_hull_image(binary)

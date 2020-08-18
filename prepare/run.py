@@ -30,7 +30,7 @@ def _save_augmented_positive_cubes(data: pd.DataFrame):
         nodule_coords_annot = annotations[annotations['seriesuid'] == series_id]
         tp_co = [(a['coordZ'], a['coordY'], a['coordX']) for a in nodule_coords_annot.iloc]
         radii = [(a['diameter_mm'] / 2) for a in nodule_coords_annot.iloc]
-        ct = CTScan(filename=series_id, coords=tp_co, radii=radii)
+        ct = CTScan(seriesuid=series_id, coords=tp_co, radii=radii)
         ct.preprocess()
         for i in range(len(tp_co)):
             times_to_sample = 1
@@ -66,7 +66,7 @@ def _save_augmented_negative_cubes(data: pd.DataFrame):
         max_numbers_to_use = min(len(tp_co), 3)
         tp_co = tp_co[:max_numbers_to_use]
         radii = radii[:max_numbers_to_use]
-        ct = CTScan(filename=series_id, coords=tp_co, radii=radii)
+        ct = CTScan(seriesuid=series_id, coords=tp_co, radii=radii)
         ct.preprocess()
         for i in range(len(tp_co)):
             times_to_sample = 1
