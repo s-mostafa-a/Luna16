@@ -17,8 +17,8 @@ The preparation code is implemented in the `prepare` package, including pre-proc
 
 ### Tutorials:
 There is a [jupyter notebook as a tutorial](./notebooks/Preprocessor.ipynb), covering the pre-processing steps. 
-Take a look at the `prepare._ct_scan.CTScan.preprocess` method. 
-Also, there is another [jupyter notebook tutorial](./notebooks/Augmentor.ipynb) explaining the augmentation techniques of the method `prepare._ct_scan.CTScan.get_augmented_subimage`, 
+Take a look at the `prepare._classes.CTScan.preprocess` method. 
+Also, there is another [jupyter notebook tutorial](./notebooks/Augmentor.ipynb) explaining the augmentation techniques of the method `prepare._classes.PatchMaker._get_augmented_patch`, 
 which is strongly recommended to review.
 
 ## Model
@@ -37,9 +37,11 @@ The `LunaDataSet` class in `main/dataset.py`, loads the saved augmented data to 
 Also, for more information, the dataset description is available [here](https://luna16.grand-challenge.org/data/).
 2. Change the first 2 variables in `configs.py` file
 
-3. Run `prepare/run.py`
+3. Run `prepare/run_preprocess.py`
 
-4. Run `main/train.py`
+4. Run `prepare/run_augmentation.py`
+
+5. Run `main/train.py`
 
 ### Using google colab
 The model has been trained in some small epochs by a [small sample](https://drive.google.com/file/d/1QOSRnUiwp08AFYOFgrCWJrEEEckZG1_0/view?usp=sharing) on google colab infrastructure.
