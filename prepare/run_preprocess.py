@@ -56,7 +56,3 @@ def save_preprocessed_data():
 
 if __name__ == '__main__':
     save_preprocessed_data()
-    plt.imshow(np.load(
-        f'{OUTPUT_PATH}/preprocessed/positives/1.3.6.1.4.1.14519.5.2.1.6279.6001.430109407146633213496148200410.npy')[
-               200, :, :], cmap=plt.cm.bone)
-    plt.show()
