@@ -3,7 +3,6 @@ from functools import partial
 import numpy as np
 from matplotlib import pyplot as plt
 from scipy import ndimage as ndi
-from scipy.ndimage.interpolation import zoom
 import scipy
 from skimage.filters import roberts
 from skimage.measure import label, regionprops

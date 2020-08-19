@@ -4,7 +4,6 @@ import numpy as np
 from glob import glob
 import os
 from configs import OUTPUT_PATH, RESOURCES_PATH
-import matplotlib.pyplot as plt
 
 annotations = pd.read_csv(RESOURCES_PATH + '/annotations.csv')
 candidates = pd.read_csv(RESOURCES_PATH + '/candidates.csv')
