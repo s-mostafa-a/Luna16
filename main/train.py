@@ -111,7 +111,7 @@ def run(load_last_checkpoint=False):
     loss_fn = Loss()
     optim = torch.optim.SGD(neural_net.parameters(), DEFAULT_LR, momentum=0.9, weight_decay=1e-4)
     starting_epoch = 0
-    initial_loss = 1
+    initial_loss = None
     if load_last_checkpoint:
         model_paths = glob(f'''{save_dir}*.ckpt''')
         model_names = [int(i.split('/')[-1][:-5]) for i in model_paths]
@@ -127,7 +127,7 @@ def run(load_last_checkpoint=False):
         loss_fn = loss_fn.cuda()
     print(f'''Training from epoch: {starting_epoch} towards: {TOTAL_EPOCHS},
 with learning rate starting from: {get_lr(starting_epoch)}, and loss: {initial_loss}''')
-    meta = pd.read_csv(f'{OUTPUT_PATH}/meta.csv', index_col=0).sample(frac=1).reset_index(drop=True)
+    meta = pd.read_csv(f'{OUTPUT_PATH}/augmented_meta.csv', index_col=0).sample(frac=1).reset_index(drop=True)
     meta_group_by_series = meta.groupby(['seriesuid']).indices
     list_of_groups = [{i: list(meta_group_by_series[i])} for i in meta_group_by_series.keys()]
     random.Random(0).shuffle(list_of_groups)

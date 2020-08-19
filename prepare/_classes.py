@@ -128,7 +128,7 @@ class PatchMaker(object):
                 subdir = 'negatives' if self._clazz == 0 else 'positives'
                 file_path = f'''augmented/{subdir}/{self._seriesuid}_{i}_{j}.npy'''
                 list_of_dicts.append(
-                    {'seriesuid': self._seriesuid, 'centers': existing_centers,
+                    {'seriesuid': self._seriesuid, 'centers': existing_centers, 'sub_index': f'{i}_{j}',
                      'lungs_bounding_box': lungs_bounding_box, 'radii': existing_radii, 'class': self._clazz})
                 np.save(f'{OUTPUT_PATH}/{file_path}', img)
         return list_of_dicts
