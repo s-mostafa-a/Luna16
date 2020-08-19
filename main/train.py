@@ -11,7 +11,7 @@ import itertools
 import pandas as pd
 from main.dataset import LunaDataSet
 from torch.utils.data import DataLoader
-from configs import VAL_PCT, TOTAL_EPOCHS, DEFAULT_LR, OUTPUT_PATH, RESOURCES_PATH
+from configs import VAL_PCT, TOTAL_EPOCHS, DEFAULT_LR, OUTPUT_PATH
 from glob import glob
 
 
@@ -67,12 +67,12 @@ def train(data_loader, net, loss, epoch, optimizer, get_lr, save_dir='./models/'
     end_time = time.time()
     print(f'''Epoch {epoch} (lr {lr})''')
     print(f'''Train: tpr {100.0 * np.sum(metrics[:, 6]) / np.sum(metrics[:, 7])},
-            tnr {100.0 * np.sum(metrics[:, 8]) / np.sum(metrics[:, 9])}, 
-            total pos {np.sum(metrics[:, 7])}, total neg {np.sum(metrics[:, 9])}, 
-            time {end_time - start_time}''')
+tnr {100.0 * np.sum(metrics[:, 8]) / np.sum(metrics[:, 9])},
+total pos {np.sum(metrics[:, 7])}, total neg {np.sum(metrics[:, 9])},
+time {end_time - start_time}''')
     print(f'''loss {np.mean(metrics[:, 0])}, classify loss {np.mean(metrics[:, 1])},
-            regress loss {np.mean(metrics[:, 2])}, {np.mean(metrics[:, 3])}, 
-            {np.mean(metrics[:, 4])}, {np.mean(metrics[:, 5])}''')
+regress loss {np.mean(metrics[:, 2])}, {np.mean(metrics[:, 3])},
+{np.mean(metrics[:, 4])}, {np.mean(metrics[:, 5])}''')
 
 
 def validate(data_loader, net, loss):
@@ -100,8 +100,8 @@ def validate(data_loader, net, loss):
     metrics = np.asarray(metrics, np.float32)
     print(f'''time {end_time - start_time}''')
     print(f'''loss {np.mean(metrics[:, 0])}, classify loss {np.mean(metrics[:, 1])},
-            regress loss {np.mean(metrics[:, 2])}, {np.mean(metrics[:, 3])}, 
-            {np.mean(metrics[:, 4])}, {np.mean(metrics[:, 5])}''')
+regress loss {np.mean(metrics[:, 2])}, {np.mean(metrics[:, 3])},
+{np.mean(metrics[:, 4])}, {np.mean(metrics[:, 5])}''')
 
 
 def run(load_last_checkpoint=False):

@@ -24,7 +24,8 @@ def _get_patches(record):
 def save_augmented_data(preprocess_meta):
     [os.makedirs(d, exist_ok=True) for d in
      [f'{OUTPUT_PATH}/augmented/positives', f'{OUTPUT_PATH}/augmented/negatives']]
-    augmentation_meta = pd.DataFrame(columns=['seriesuid', 'sub_index', 'centers', 'lungs_bounding_box', 'radii', 'class'])
+    augmentation_meta = pd.DataFrame(columns=['seriesuid', 'sub_index', 'centers', 'lungs_bounding_box', 'radii',
+                                              'class'])
     list_of_positives = []
     list_of_negatives = []
     for rec in preprocess_meta.loc[preprocess_meta['class'] == 1].iloc:

@@ -252,42 +252,43 @@ def get_segmented_lungs(im, plot=False):
         plots[plt_number].set_title(f'{plt_number}')
         plots[plt_number].imshow(label_image, cmap=plt.cm.bone)
         plt_number += 1
-    # Step 5: Fill in the small holes inside the mask of lungs which we seperate right and left lung. r and l are symbolic and they can be actually left and right!
+    # Step 5: Fill in the small holes inside the mask of lungs which we seperate right and left lung.
+    # r and l are symbolic and they can be actually left and right!
     # image labels: 5, 6
-    r = label_image == labels[0]
-    l = label_image == labels[1]
-    r_edges = roberts(r)
-    l_edges = roberts(l)
-    r = ndi.binary_fill_holes(r_edges)
-    l = ndi.binary_fill_holes(l_edges)
+    rig = label_image == labels[0]
+    lef = label_image == labels[1]
+    r_edges = roberts(rig)
+    l_edges = roberts(lef)
+    rig = ndi.binary_fill_holes(r_edges)
+    lef = ndi.binary_fill_holes(l_edges)
     if plot:
         plots[plt_number].axis('off')
         plots[plt_number].set_title(f'{plt_number}')
-        plots[plt_number].imshow(r, cmap=plt.cm.bone)
+        plots[plt_number].imshow(rig, cmap=plt.cm.bone)
         plt_number += 1
 
         plots[plt_number].axis('off')
         plots[plt_number].set_title(f'{plt_number}')
-        plots[plt_number].imshow(l, cmap=plt.cm.bone)
+        plots[plt_number].imshow(lef, cmap=plt.cm.bone)
         plt_number += 1
 
     # Step 6: convex hull of each lung
     # image labels: 7, 8
-    r = convex_hull_image(r)
-    l = convex_hull_image(l)
+    rig = convex_hull_image(rig)
+    lef = convex_hull_image(lef)
     if plot:
         plots[plt_number].axis('off')
         plots[plt_number].set_title(f'{plt_number}')
-        plots[plt_number].imshow(r, cmap=plt.cm.bone)
+        plots[plt_number].imshow(rig, cmap=plt.cm.bone)
         plt_number += 1
 
         plots[plt_number].axis('off')
         plots[plt_number].set_title(f'{plt_number}')
-        plots[plt_number].imshow(l, cmap=plt.cm.bone)
+        plots[plt_number].imshow(lef, cmap=plt.cm.bone)
         plt_number += 1
     # Step 7: joint two separated right and left lungs.
     # image label: 9
-    sum_of_lr = r + l
+    sum_of_lr = rig + lef
     binary = sum_of_lr > 0
     if plot:
         plots[plt_number].axis('off')
