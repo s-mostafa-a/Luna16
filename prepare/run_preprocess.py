@@ -15,7 +15,7 @@ def _get_positive_series():
     file_list = [f.split('/')[-1][:-4] for f in paths]
     series = annotations['seriesuid'].tolist()
     infected = [f for f in file_list if f in series]
-    return infected[:3]
+    return infected
 
 
 def _get_negative_series():
@@ -23,7 +23,7 @@ def _get_negative_series():
     file_list = [f.split('/')[-1][:-4] for f in paths]
     series = annotations['seriesuid'].tolist()
     cleans = [f for f in file_list if f not in series]
-    return cleans[:3]
+    return cleans
 
 
 def save_preprocessed_data():
