@@ -121,8 +121,8 @@ class PatchMaker(object):
                 times_to_sample = 6
             for j in range(times_to_sample):
                 rot_id = int((j / times_to_sample) * 24 + np.random.randint(0, int(24 / times_to_sample)))
-                img, radii2, centers, lungs_bounding_box, spacing, existing_nodules_in_patch = self._get_augmented_patch(
-                    idx=i, rot_id=rot_id)
+                img, radii2, centers, lungs_bounding_box, spacing, existing_nodules_in_patch = \
+                    self._get_augmented_patch(idx=i, rot_id=rot_id)
                 existing_radii = [radii2[i] for i in existing_nodules_in_patch]
                 existing_centers = [centers[i] for i in existing_nodules_in_patch]
                 subdir = 'negatives' if self._clazz == 0 else 'positives'
